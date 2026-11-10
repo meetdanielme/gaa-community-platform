@@ -1,4 +1,4 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, ne, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { member, membershipFee, user as userTable } from "@/db/schema";
 import { clubConfig } from "@/club.config";
@@ -10,10 +10,6 @@ import { payments, receiptNumber } from "./payments";
 export type Member = typeof member.$inferSelect;
 export type MembershipFee = typeof membershipFee.$inferSelect;
 
-/**
- * Linked family members come from club records; teams and memberships are
- * updated by the club, not in the app.
- */
 export async function getFamily(userId: string) {
   const members = await db.query.member.findMany({
     where: eq(member.managedByUserId, userId),
@@ -47,6 +43,68 @@ export async function updateContactDetails(
       .update(member)
       .set({ fullName: input.name })
       .where(and(eq(member.managedByUserId, userId), eq(member.relationship, "self")));
+  });
+}
+
+export type MemberInput = {
+  id?: string;
+  fullName: string;
+  relationship: string;
+  code: string | null;
+  team: string | null;
+};
+
+/**
+ * BR01: creates or updates a family member managed by `managerUserId`. Only
+ * that account (or a club admin acting for it) may call this. New members
+ * get a membership record for the current season.
+ */
+export async function saveMember(managerUserId: string, input: MemberInput) {
+  // The "self" profile is tied to the account: its name comes from the
+  // contact details and its relationship can never change.
+  const relationship = input.relationship === "self" ? "other" : input.relationship;
+  if (input.id) {
+    const updated = await db
+      .update(member)
+      .set({
+        fullName: sql`case when ${member.relationship} = 'self' then ${member.fullName} else ${input.fullName} end`,
+        relationship: sql`case when ${member.relationship} = 'self' then 'self' else ${relationship} end`,
+        code: input.code,
+        team: input.team,
+      })
+      .where(and(eq(member.id, input.id), eq(member.managedByUserId, managerUserId)))
+      .returning();
+    return updated[0] ?? null;
+  }
+  return db.transaction(async (tx) => {
+    const [created] = await tx
+      .insert(member)
+      .values({ managedByUserId: managerUserId, fullName: input.fullName, relationship, code: input.code, team: input.team })
+      .returning();
+    await tx.insert(membershipFee).values({
+      memberId: created.id,
+      season: clubConfig.season,
+      amountCents: clubConfig.membershipFeeCents,
+    });
+    return created;
+  });
+}
+
+/** Unlinks a family member. The account holder's own profile can't be removed. */
+export async function removeMember(managerUserId: string, memberId: string) {
+  const removed = await db
+    .delete(member)
+    .where(and(eq(member.id, memberId), eq(member.managedByUserId, managerUserId), ne(member.relationship, "self")))
+    .returning();
+  return removed[0] ?? null;
+}
+
+/** "My giving": the signed-in person's donation history. */
+export async function getMyDonations(userId: string) {
+  return db.query.donation.findMany({
+    where: (d, { eq: e }) => e(d.userId, userId),
+    orderBy: (d, { desc }) => desc(d.createdAt),
+    with: { goal: { columns: { title: true, slug: true } } },
   });
 }
 

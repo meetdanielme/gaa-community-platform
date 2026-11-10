@@ -36,6 +36,7 @@ Follow the existing shape: **page → action → service → rule**.
 | Screens | `src/app/(app)/…` — Server Components by default; add `"use client"` only for interactivity |
 | Tables | `src/db/schema.ts`, then `pnpm db:generate` to create a migration (commit it) |
 | Club-specific text, colours or fees | `src/club.config.ts` — never hard-code "Saints" in a component |
+| Club officer (admin) screens | `src/app/admin/…` — every action starts with `requireAdmin()`, and services record changes with `audit()` |
 
 Guidelines:
 

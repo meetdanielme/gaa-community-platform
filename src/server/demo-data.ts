@@ -1,11 +1,15 @@
 /**
- * Demo content for the Saints deployment. Another club would replace this
- * file with its own posts, events and goals.
+ * Demo content for the Saints deployment, loaded when DEMO_MODE is on.
+ * Another club would replace this file with its own content, or turn demo
+ * mode off and create everything from the admin area.
  *
  * Dates are relative to "now" so a fresh demo always has upcoming events.
  * Costs are illustrative prototype values, not verified club spending.
  */
-import type { BreakdownItem, ScheduleItem } from "../src/db/schema.ts";
+import type { BreakdownItem, ScheduleItem } from "@/db/schema";
+import { DEMO_ADMIN, DEMO_MEMBER, DEMO_PASSWORD } from "@/lib/demo";
+
+export { DEMO_PASSWORD };
 
 const DAY = 86_400_000;
 export const daysFromNow = (days: number, hour = 11, minute = 0) => {
@@ -15,11 +19,9 @@ export const daysFromNow = (days: number, hour = 11, minute = 0) => {
 };
 const hoursAgo = (h: number) => new Date(Date.now() - h * 3_600_000);
 
-export const DEMO_PASSWORD = "saints-demo-2026";
-
 export const demoUser = {
   name: "Evan Alam",
-  email: "evan@example.com",
+  email: DEMO_MEMBER.email,
   phone: "+353 123 45678",
   eircode: "T12 KV06",
   roles: "family_supporter",
@@ -29,6 +31,15 @@ export const demoUser = {
     { fullName: "Emmanuella Alam", relationship: "child", code: "camogie", team: "U18", fee: "paid" },
     { fullName: "Daniel Alam", relationship: "sibling", code: "hurling", team: "Adult", fee: "sponsored" },
   ],
+};
+
+export const demoAdmin = {
+  name: "Aoife Byrne",
+  email: DEMO_ADMIN.email,
+  phone: "+353 21 400 1234",
+  eircode: "T12 AB34",
+  roles: "family_supporter",
+  helpsWith: "Club secretary",
 };
 
 export const posts = [

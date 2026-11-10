@@ -41,10 +41,11 @@ export function Button({
 
 export function LinkButton({
   variant = "secondary",
+  size = "md",
   className = "",
   ...props
-}: ComponentProps<typeof Link> & { variant?: Variant }) {
-  return <Link className={buttonClass(variant, className)} {...props} />;
+}: ComponentProps<typeof Link> & { variant?: Variant; size?: Size }) {
+  return <Link className={buttonClass(variant, className, size)} {...props} />;
 }
 
 /* Surfaces */

@@ -4,9 +4,11 @@
 
 It started as Group 16's design project for **IS2204 Visual Thinking for Systems Analysis & Design** at University College Cork, built around the fictional multi-code club *Saints*. The aim now is to grow it, with contributions from the rest of the class, into a **white-label platform any GAA club in Ireland can run**.
 
-> **Try the demo:** open the deployed site and click **Explore the demo**. You'll be signed in as Evan, a family supporter with three linked family members. Payments are simulated — no money is ever taken.
+> **Try the demo:** open the deployed site and click **Explore the demo** to sign in as Evan, a family supporter with three linked family members, or **Explore as club admin** to run the club as Aoife, the club secretary. Payments are simulated — no money is ever taken — and the demo resets every night.
 
 ## What it does
+
+### For members
 
 | | Feature | Use case |
 | --- | --- | --- |
@@ -16,8 +18,23 @@ It started as Group 16's design project for **IS2204 Visual Thinking for Systems
 | 💳 | **Membership fees** per member per season (demo payments) | UC5 Pay membership fees |
 | 💛 | **Donate** to the club's one active goal, with a transparent cost breakdown | UC6 Make a donation |
 | 🗳️ | **Vote** for the next goal — one member, one vote; the top goal becomes active when the current one is funded | UC7 Vote for next donation goal |
-| 👪 | **Profiles** — contact details and linked family members | UC1 Maintain member and family profile |
-| 🔗 | **Share** goals and events | Share fundraising goal details |
+| 👪 | **Profiles** — contact details; add, edit and remove linked family members | UC1 Maintain member and family profile |
+| 🔗 | **Share** goals and events; **add events to your calendar** (.ics) | Share fundraising goal details |
+| 🧾 | **Your giving** — donation history with receipts | UC6 |
+| 🔐 | **Account** — change or reset your password, delete your account (GDPR) | — |
+
+### For club officers (`/admin`)
+
+| | Feature |
+| --- | --- |
+| 📊 | **Dashboard** — accounts, membership collected and outstanding, donations, current goal, and an **activity log** of every admin change for transparent governance |
+| 📰 | **Posts** — publish, edit and delete feed updates, with photos and call-to-action buttons |
+| 📅 | **Events** — create, edit, cancel (families who said "going" are emailed) and delete; see who's going and **export to CSV** |
+| 💛 | **Fundraising** — propose goals with a cost breakdown, withdraw/restore them, record money raised offline, and **choose the next goal when a vote is tied** (BR08) |
+| 👥 | **Members** — search accounts, grant admin access, edit roles and family members, record cash or sponsored memberships |
+| 🧾 | **Donations** — the full ledger with filters and CSV export |
+
+Admins are ordinary accounts with the admin flag — no separate login. A daily job emails event reminders and resets the public demo.
 
 The scope matches the team's **Sprint 4** submission: the hi-fi prototype screens and the donation/voting core from the DFDs. Volunteering (UC4) is in the use-case model but not the prototype, so it's left for a future contribution.
 
@@ -34,7 +51,7 @@ pnpm install
 pnpm dev
 ```
 
-Open <http://localhost:3000> and click **Explore the demo** (or sign in as `evan@example.com` / `saints-demo-2026`).
+Open <http://localhost:3000> and click **Explore the demo** or **Explore as club admin** (or sign in as `evan@example.com` / `admin@example.com`, password `saints-demo-2026`). Emails (password resets, reminders) are printed in the terminal.
 
 `pnpm dev` starts a local Postgres (embedded [PGlite](https://pglite.dev), stored in `.data/`), applies migrations, seeds demo data the first time, and runs Next.js.
 
@@ -78,21 +95,21 @@ The flow for any feature is **page → action → service → rule**. Pages rend
 
 ## Make it your club's
 
-Everything club-specific is in two files:
+1. Edit **[`src/club.config.ts`](src/club.config.ts)** — name, tagline, season, brand colours, codes, membership fee, donation presets.
+2. Deploy with `DEMO_MODE=false` (no sample content, no demo buttons, no nightly reset) and `ADMIN_EMAILS=you@yourclub.ie`.
+3. Sign up with that email — you're the club's first admin. Create events, posts and fundraising goals from **/admin**, and grant admin access to other officers from **Members**.
+4. For email (password resets, reminders, cancellations), add `RESEND_API_KEY` and `EMAIL_FROM` from [Resend](https://resend.com).
 
-1. **[`src/club.config.ts`](src/club.config.ts)** — name, tagline, season, brand colours, codes, membership fee, donation presets.
-2. **[`scripts/seed-data.mts`](scripts/seed-data.mts)** — starting posts, events, fundraising goals and the demo family.
-
-Change those, run `pnpm db:reset`, and you have a different club. Proper multi-club support (many clubs on one deployment) is on the [roadmap](#roadmap).
+The Saints sample content lives in [`src/server/demo-data.ts`](src/server/demo-data.ts). Proper multi-club support (many clubs on one deployment) is on the [roadmap](#roadmap).
 
 ## Deploy to Vercel
 
 1. Import the repository into [Vercel](https://vercel.com/new).
 2. Add a Postgres database: **Storage → Create → Neon** (this sets `DATABASE_URL`).
-3. Add `BETTER_AUTH_SECRET` — generate one with `openssl rand -base64 32`.
-4. Deploy. The build runs migrations and seeds the demo data if the database is empty (`pnpm vercel-build`).
+3. Add `BETTER_AUTH_SECRET` (generate with `openssl rand -base64 32`) and `CRON_SECRET` (any long random string — it protects the daily job).
+4. Deploy. The build runs migrations and, in demo mode, seeds the demo data if the database is empty (`pnpm vercel-build`).
 
-Optional: set `BETTER_AUTH_URL` to your production URL, or `AUTH_ALLOWED_HOSTS` (comma-separated) to allow extra custom domains. See [`.env.example`](.env.example).
+All settings, including email and custom domains, are listed in [`.env.example`](.env.example).
 
 > Preview deployments share the production database unless you enable Neon's preview-branch integration. Turn it on before accepting pull requests that change the schema.
 
@@ -105,14 +122,13 @@ Classmates, other clubs and anyone who loves the GAA are welcome. Start with [CO
 Ideas we'd love help with — open an issue to discuss before starting on a big one:
 
 - **Volunteering (UC4)** — sign up for roles at events, with capacity and conflict checks (BR04 is already specified in the coursework)
-- **Family self-service** — add and edit linked family members (today the club manages these records)
-- **Club admin area** — post updates, create events and volunteer roles, propose goals, resolve tied votes (today this is seed data only; club operations were outside the original design boundary)
+- **Photo uploads** — upload images for posts and events (e.g. with Vercel Blob) instead of linking them
+- **Seasons** — roll memberships over to a new season and set fees per age group
 - **Multi-club (multi-tenant)** — host many clubs on one deployment, each with its own branding
 - **Real payments** — implement the `PaymentProvider` interface in `src/server/payments.ts` with Stripe
-- **Notifications** — email/push for reminders, RSVP deadlines and goal milestones
+- **More notifications** — push notifications, RSVP-deadline nudges and goal milestones (email reminders and cancellations exist)
 - **Attendance & integration insights** for coaches across the four codes, with privacy for under-18s built in
 - **Irish language (Gaeilge) translation** and accessibility audits
-- **Nightly demo reset** so the public demo always starts fresh
 
 ## Credits
 

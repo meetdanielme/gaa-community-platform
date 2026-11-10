@@ -4,7 +4,8 @@ import type { Metadata } from "next";
 import { codeLabel } from "@/club.config";
 import { PageBody, PageHeader } from "@/components/page-header";
 import { ShareButton } from "@/components/share-button";
-import { Card, DetailRows, Notice, Tag } from "@/components/ui";
+import { DownloadIcon } from "@/components/icons";
+import { Card, DetailRows, Notice, Tag, buttonClass } from "@/components/ui";
 import { formatLongDate, formatTime } from "@/lib/format";
 import { requireUser } from "@/lib/session";
 import { getEventDetail } from "@/server/events";
@@ -36,7 +37,7 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
         <section className="flex flex-col gap-5">
           {e.imageUrl && (
             <div className="relative h-56 overflow-hidden rounded-3xl">
-              <Image src={e.imageUrl} alt="" fill priority sizes="(min-width: 1024px) 55vw, 100vw" className="object-cover" />
+              <Image src={e.imageUrl} unoptimized={!e.imageUrl.startsWith("/")} alt="" fill priority sizes="(min-width: 1024px) 55vw, 100vw" className="object-cover" />
             </div>
           )}
           <div>
@@ -60,6 +61,9 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
                 { label: "Time", value: formatTime(e.startsAt) },
                 { label: "Venue", value: e.venue },
                 ...(e.capacity ? [{ label: "Going", value: `${goingCount} of ${e.capacity}` }] : []),
+                ...(e.rsvpDeadline && !isPast
+                  ? [{ label: "Respond by", value: `${formatLongDate(e.rsvpDeadline)}, ${formatTime(e.rsvpDeadline)}` }]
+                  : []),
               ]}
             />
           </Card>
@@ -98,6 +102,9 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
                 }))}
               />
               <ReminderToggle eventId={e.id} eventTitle={e.title} on={reminderOn} />
+              <a href={`/events/${e.slug}/calendar`} className={buttonClass("ghost")}>
+                <DownloadIcon className="size-5" /> Add to calendar
+              </a>
             </div>
           )}
 

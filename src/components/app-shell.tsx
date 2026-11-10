@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { clubConfig } from "@/club.config";
 import { authClient } from "@/lib/auth-client";
-import { CalendarIcon, FeedIcon, HeartIcon, PersonIcon, SignOutIcon } from "./icons";
+import { CalendarIcon, FeedIcon, HeartIcon, PersonIcon, SettingsIcon, SignOutIcon } from "./icons";
 
 const nav = [
   { href: "/feed", label: "Feed", Icon: FeedIcon },
@@ -23,7 +23,7 @@ export function Wordmark() {
   );
 }
 
-export function AppShell({ children }: { children: ReactNode }) {
+export function AppShell({ children, isAdmin = false }: { children: ReactNode; isAdmin?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
@@ -56,10 +56,19 @@ export function AppShell({ children }: { children: ReactNode }) {
             </Link>
           ))}
         </nav>
+        {isAdmin && (
+          <Link
+            href="/admin"
+            className="mt-auto flex h-11 items-center gap-3 rounded-full px-4 text-sm font-semibold text-navy hover:bg-paper"
+          >
+            <SettingsIcon className="size-5" />
+            Club admin
+          </Link>
+        )}
         <button
           type="button"
           onClick={signOut}
-          className="mt-auto flex h-11 items-center gap-3 rounded-full px-4 text-sm font-medium text-muted hover:bg-paper"
+          className={`${isAdmin ? "" : "mt-auto "}flex h-11 items-center gap-3 rounded-full px-4 text-sm font-medium text-muted hover:bg-paper`}
         >
           <SignOutIcon className="size-5" />
           Sign out

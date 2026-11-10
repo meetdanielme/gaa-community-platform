@@ -1,10 +1,11 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useFormAction } from "@/lib/use-form-action";
+import { useState } from "react";
 import { Field, Input } from "@/components/form";
 import { Sheet } from "@/components/sheet";
 import { Button, Notice } from "@/components/ui";
-import { updateContactAction, type FormState } from "./actions";
+import { updateContactAction } from "./actions";
 
 /* Figma "Sheet / edit" (Contact details) and "editSaved". */
 export function EditContactButton({
@@ -13,14 +14,14 @@ export function EditContactButton({
   user: { name: string; email: string; phone: string | null; eircode: string | null };
 }) {
   const [open, setOpen] = useState(false);
-  const [state, action, pending] = useActionState<FormState, FormData>(updateContactAction, null);
+  const [state, onSubmit, pending] = useFormAction(updateContactAction);
   const err = state?.errors ?? {};
 
   return (
     <>
       <Button onClick={() => setOpen(true)}>Edit contact details</Button>
       <Sheet open={open} onClose={() => setOpen(false)} title="Contact details">
-        <form action={action} className="flex flex-col gap-4">
+        <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <Field label="Name" error={err.name}>
             <Input name="name" defaultValue={user.name} required autoComplete="name" />
           </Field>

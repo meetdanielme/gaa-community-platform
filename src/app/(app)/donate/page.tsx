@@ -40,12 +40,19 @@ export default async function DonatePage() {
                 See the impact
               </Link>
             </GoalSummary>
-          ) : (
+          ) : overview.selectionPending ? (
             <Card className="flex flex-col gap-3">
               <p className="text-xl font-bold text-navy">Selection pending</p>
               <p className="text-sm text-muted">
                 {progression?.funded.title ?? "The last goal"} is fully funded — thank you! The vote for the next goal
                 was tied, so the club committee will publish a decision soon.
+              </p>
+            </Card>
+          ) : (
+            <Card className="flex flex-col gap-3">
+              <p className="text-xl font-bold text-navy">No fundraising goal yet</p>
+              <p className="text-sm text-muted">
+                The club hasn&apos;t opened a fundraising goal yet. Proposals will appear here for you to vote on.
               </p>
             </Card>
           )}

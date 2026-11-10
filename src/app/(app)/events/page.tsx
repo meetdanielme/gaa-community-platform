@@ -48,7 +48,7 @@ function EventCard({ e, past }: { e: ClubEvent; past?: boolean }) {
     <article className="flex flex-col gap-3 rounded-card bg-white p-5">
       {e.imageUrl && (
         <div className="relative h-38 overflow-hidden rounded-2xl">
-          <Image src={e.imageUrl} alt="" fill sizes="(min-width: 1024px) 30vw, 100vw" className="object-cover" />
+          <Image src={e.imageUrl} unoptimized={!e.imageUrl.startsWith("/")} alt="" fill sizes="(min-width: 1024px) 30vw, 100vw" className="object-cover" />
         </div>
       )}
       <div className="flex items-center gap-3">

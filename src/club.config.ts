@@ -41,6 +41,11 @@ export const clubConfig = {
   /** Preset one-off donation amounts in cents. */
   donationPresetsCents: [1000, 2500, 5000],
   maxDonationCents: 100000,
+  /**
+   * Demo mode seeds sample content, shows the demo sign-in buttons and resets
+   * everything nightly. Set DEMO_MODE=false for a real club deployment.
+   */
+  demoMode: process.env.DEMO_MODE !== "false",
 } as const;
 
 /** Labels for event categories: the four codes plus club-wide categories. */

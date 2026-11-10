@@ -109,7 +109,7 @@ export function ReminderToggle({ eventId, eventTitle, on }: { eventId: string; e
       <Sheet open={sheet !== null} onClose={() => setSheet(null)} title={sheet === "on" ? "Reminder set" : "Reminder off"}>
         <p className="text-muted">
           {sheet === "on"
-            ? `We'll remind you the day before ${eventTitle}.`
+            ? `We'll email you a reminder the day before ${eventTitle}.`
             : `You won't get a reminder for ${eventTitle}.`}
         </p>
         <Button variant="primary" onClick={() => setSheet(null)}>

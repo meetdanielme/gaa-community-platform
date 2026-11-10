@@ -47,7 +47,7 @@ export default async function FeedPage() {
                 </div>
                 {p.imageUrl && (
                   <div className="relative h-48 overflow-hidden rounded-2xl">
-                    <Image src={p.imageUrl} alt="" fill sizes="(min-width: 768px) 40vw, 100vw" className="object-cover" />
+                    <Image src={p.imageUrl} unoptimized={!p.imageUrl.startsWith("/")} alt="" fill sizes="(min-width: 768px) 40vw, 100vw" className="object-cover" />
                   </div>
                 )}
                 <div>

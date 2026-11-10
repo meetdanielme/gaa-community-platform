@@ -1,0 +1,92 @@
+"use server";
+
+import { refresh } from "next/cache";
+import { redirect } from "next/navigation";
+import { z } from "zod";
+import { fieldErrors, formFields, type FormState } from "@/lib/form-state";
+import { requireAdmin } from "@/lib/session";
+import { optional } from "@/lib/validation";
+import { activateGoal, recordOfflineFunds, saveGoal, setGoalWithdrawn } from "@/server/admin/fundraising";
+
+/** "1,250.50" → 125050 cents */
+const euros = (message: string) =>
+  z.string().transform((v, ctx) => {
+    const n = Number(v.replace(/[€,\s]/g, ""));
+    if (!Number.isFinite(n) || n <= 0 || n > 10_000_000) {
+      ctx.addIssue({ code: "custom", message });
+      return 0;
+    }
+    return Math.round(n * 100);
+  });
+
+const goalSchema = z.object({
+  id: z.string().uuid().optional(),
+  title: z.string().trim().min(3, "Name the goal").max(80),
+  purpose: z.string().trim().min(10, "One sentence on what it's for").max(160),
+  headline: optional(100),
+  description: optional(3000),
+  targetCents: euros("Enter the amount to raise, e.g. 4000"),
+});
+
+export async function saveGoalAction(_: FormState, formData: FormData): Promise<FormState> {
+  const admin = await requireAdmin();
+  const parsed = goalSchema.safeParse(formFields(formData, ["id", "title", "purpose", "headline", "description", "targetCents"]));
+  if (!parsed.success) return fieldErrors(parsed.error);
+
+  const labels = formData.getAll("breakdownLabel").map(String);
+  const amounts = formData.getAll("breakdownAmount").map(String);
+  const breakdown = [];
+  for (const [i, label] of labels.entries()) {
+    if (!label.trim() && !amounts[i]?.trim()) continue;
+    const cents = Math.round(Number((amounts[i] ?? "").replace(/[€,\s]/g, "")) * 100);
+    if (!label.trim() || !Number.isFinite(cents) || cents <= 0) {
+      return { ok: false, errors: { breakdown: "Each cost line needs a description and an amount." } };
+    }
+    breakdown.push({ label: label.trim(), amountCents: cents });
+  }
+  const total = breakdown.reduce((n, b) => n + b.amountCents, 0);
+  if (breakdown.length && total !== parsed.data.targetCents) {
+    return { ok: false, errors: { breakdown: "The cost lines should add up to the target, so members see where every euro goes." } };
+  }
+
+  const result = await saveGoal(admin, { ...parsed.data, breakdown });
+  if (!result.ok) return { ok: false, message: result.error };
+  redirect("/admin/goals");
+}
+
+export async function setGoalWithdrawnAction(goalId: string, withdrawn: boolean) {
+  const admin = await requireAdmin();
+  await setGoalWithdrawn(admin, z.string().uuid().parse(goalId), withdrawn);
+  refresh();
+}
+
+export async function activateGoalAction(goalId: string) {
+  const admin = await requireAdmin();
+  const result = await activateGoal(admin, z.string().uuid().parse(goalId));
+  refresh();
+  return result;
+}
+
+const offlineSchema = z.object({
+  goalId: z.string().uuid(),
+  amount: euros("Enter an amount, e.g. 250"),
+  note: z.string().trim().max(120),
+});
+
+export async function recordOfflineFundsAction(_: FormState, formData: FormData): Promise<FormState> {
+  const admin = await requireAdmin();
+  const parsed = offlineSchema.safeParse(formFields(formData, ["goalId", "amount", "note"]));
+  if (!parsed.success) return fieldErrors(parsed.error);
+  const result = await recordOfflineFunds(admin, parsed.data.goalId, parsed.data.amount, parsed.data.note);
+  if (!result.ok) return { ok: false, message: result.error };
+  refresh();
+  const done = result.progression.outcome !== "retain";
+  return {
+    ok: true,
+    message: done
+      ? result.progression.outcome === "advance"
+        ? "Recorded — the goal is fully funded and the next goal is now active!"
+        : "Recorded — the goal is fully funded. The vote was tied, so choose the next goal below."
+      : "Recorded and added to the total.",
+  };
+}

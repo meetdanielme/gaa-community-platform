@@ -1,27 +1,12 @@
 "use server";
 
 import { refresh } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
+import { fieldErrors, type FormState } from "@/lib/form-state";
 import { requireUser } from "@/lib/session";
-import { payMembershipFee, updateContactDetails } from "@/server/profile";
-
-export type FormState = { ok: boolean; message?: string; errors?: Record<string, string> } | null;
-
-const optional = (max: number) =>
-  z
-    .string()
-    .trim()
-    .max(max)
-    .transform((v) => (v === "" ? null : v));
-
-const contactSchema = z.object({
-  name: z.string().trim().min(2, "Enter your full name").max(80),
-  phone: optional(30).refine((v) => v === null || /^[+\d][\d\s()-]{6,}$/.test(v), "Enter a valid phone number"),
-  eircode: optional(10).refine(
-    (v) => v === null || /^[A-Za-z]\d[\dWw]\s?[A-Za-z\d]{4}$/.test(v),
-    "Enter a valid Eircode, e.g. T12 KV06",
-  ),
-});
+import { contactSchema, parseMemberForm } from "@/lib/validation";
+import { payMembershipFee, removeMember, saveMember, updateContactDetails } from "@/server/profile";
 
 /* BR01 — validate before saving; on failure the previous saved state is kept. */
 export async function updateContactAction(_: FormState, formData: FormData): Promise<FormState> {
@@ -31,18 +16,31 @@ export async function updateContactAction(_: FormState, formData: FormData): Pro
     phone: formData.get("phone") ?? "",
     eircode: formData.get("eircode") ?? "",
   });
-  if (!parsed.success) {
-    return {
-      ok: false,
-      errors: Object.fromEntries(parsed.error.issues.map((i) => [String(i.path[0]), i.message])),
-    };
-  }
+  if (!parsed.success) return fieldErrors(parsed.error);
   await updateContactDetails(user.id, {
     ...parsed.data,
     eircode: parsed.data.eircode?.toUpperCase() ?? null,
   });
   refresh();
   return { ok: true, message: "Your details have been saved." };
+}
+
+/* UC1 — add or edit a family member you manage. */
+export async function saveMemberAction(_: FormState, formData: FormData): Promise<FormState> {
+  const user = await requireUser();
+  const parsed = parseMemberForm(formData);
+  if (!parsed.success) return fieldErrors(parsed.error);
+  const saved = await saveMember(user.id, parsed.data);
+  if (!saved) return { ok: false, message: "You can only edit family members you manage." };
+  if (!parsed.data.id) redirect(`/profile/members/${saved.id}`);
+  refresh();
+  return { ok: true, message: "Member details saved." };
+}
+
+export async function removeMemberAction(memberId: string) {
+  const user = await requireUser();
+  await removeMember(user.id, z.string().uuid().parse(memberId));
+  redirect("/profile");
 }
 
 export type FeeResult =

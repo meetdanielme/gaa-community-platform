@@ -7,6 +7,8 @@ import { memberSummary } from "@/lib/members";
 import { roleLabels } from "@/lib/rules/roles";
 import { requireUser } from "@/lib/session";
 import { getFamily } from "@/server/profile";
+import { PlusIcon } from "@/components/icons";
+import { AccountSecurity } from "./account-security";
 import { EditContactButton } from "./edit-contact";
 
 export const metadata: Metadata = { title: "Profile" };
@@ -50,6 +52,14 @@ export default async function ProfilePage() {
               <p>{user.helpsWith}</p>
             </Card>
           )}
+
+          <Card className="flex flex-col gap-3">
+            <h2 className="text-xl font-bold">Your giving</h2>
+            <p className="text-sm text-muted">Donations you&apos;ve made and their receipts.</p>
+            <LinkButton href="/profile/giving">View giving history</LinkButton>
+          </Card>
+
+          <AccountSecurity />
         </section>
 
         <section className="flex flex-col gap-5">
@@ -66,11 +76,9 @@ export default async function ProfilePage() {
               <LinkButton href={`/profile/members/${m.id}`}>View member</LinkButton>
             </Card>
           ))}
-          {linked.length === 0 && (
-            <p className="text-sm text-muted">
-              Linked family members appear here once the club adds them to your account.
-            </p>
-          )}
+          <LinkButton href="/profile/members/new" variant="ghost" className="border-2 border-dashed border-pale">
+            <PlusIcon /> Add a family member
+          </LinkButton>
         </section>
       </PageBody>
     </>

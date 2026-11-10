@@ -46,16 +46,31 @@ export default async function LandingPage() {
               Every generation.
             </h1>
             <p className="max-w-md text-lg text-muted">{clubConfig.description}</p>
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <DemoSignInButton />
-              <Link href="/sign-up" className={buttonClass("secondary", "sm:w-48")}>
-                Join the club
-              </Link>
-            </div>
-            <p className="text-sm text-muted">
-              The demo signs you in as Evan, a family supporter with three linked members. Payments are
-              simulated — no money is taken.
-            </p>
+            {clubConfig.demoMode ? (
+              <>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <DemoSignInButton />
+                  <DemoSignInButton as="admin" />
+                </div>
+                <p className="text-sm text-muted">
+                  Explore as Evan, a family supporter with three linked members, or as Aoife, the club secretary who
+                  runs the admin side. Payments are simulated and the demo resets every night.{" "}
+                  <Link href="/sign-up" className="font-semibold text-navy hover:underline">
+                    Or create your own account
+                  </Link>
+                  .
+                </p>
+              </>
+            ) : (
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Link href="/sign-up" className={buttonClass("primary", "sm:w-48")}>
+                  Join the club
+                </Link>
+                <Link href="/sign-in" className={buttonClass("secondary", "sm:w-48")}>
+                  Sign in
+                </Link>
+              </div>
+            )}
           </div>
           <div className="relative aspect-[4/3] overflow-hidden rounded-[2rem]">
             <Image

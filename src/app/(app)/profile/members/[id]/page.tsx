@@ -9,6 +9,10 @@ import { canPay } from "@/lib/rules/roles";
 import { requireUser } from "@/lib/session";
 import { getManagedMember } from "@/server/profile";
 import { demoPaymentMethods } from "@/server/payments";
+import { ConfirmButton } from "@/components/confirm-button";
+import { MemberForm } from "../../member-form";
+import { removeMemberAction, saveMemberAction } from "../../actions";
+import { SheetButton } from "@/components/sheet-button";
 import { PayFeeButton } from "./member-actions";
 
 export const metadata: Metadata = { title: "Member details" };
@@ -60,12 +64,27 @@ export default async function MemberPage({ params }: PageProps<"/profile/members
           <h3 className="text-xl font-bold">A family, connected</h3>
           <p className="mt-3 max-w-md">
             {isSelf
-              ? "This is your own member profile. Contact the club to update team or membership records."
-              : `${firstName} manages this linked member profile. Contact the club to update team or membership records.`}
+              ? "This is your own member profile. Keep your code and team up to date so you see the right events."
+              : `${firstName} manages this linked member profile and can respond to events and pay membership on their behalf.`}
           </p>
         </div>
 
-        <LinkButton href={m.code ? `/events?code=${m.code}` : "/events"}>View club events</LinkButton>
+        <div className="flex flex-col gap-3">
+          <LinkButton href={m.code ? `/events?code=${m.code}` : "/events"}>View club events</LinkButton>
+          <SheetButton label="Edit member" title="Edit member">
+            <MemberForm member={m} action={saveMemberAction} />
+          </SheetButton>
+          {!isSelf && (
+            <ConfirmButton
+              label="Remove from family"
+              title="Remove member?"
+              confirmLabel={`Remove ${m.fullName}`}
+              action={removeMemberAction.bind(null, m.id)}
+            >
+              {m.fullName} will be unlinked from your account, along with their event responses and membership record.
+            </ConfirmButton>
+          )}
+        </div>
       </PageBody>
     </>
   );

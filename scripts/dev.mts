@@ -13,7 +13,7 @@ if (local) console.log("✓ Local database started (.data/pglite)");
 
 await migrateDatabase();
 console.log("✓ Database migrated");
-const { seedDatabase } = await import("./seed.mts");
+const { seedDatabase } = await import("../src/server/seed.ts");
 console.log((await seedDatabase()) ? "✓ Demo data seeded" : "• Existing data kept");
 
 const next = spawn("next", ["dev", ...process.argv.slice(2)], {

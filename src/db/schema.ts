@@ -41,6 +41,8 @@ export const user = pgTable("user", {
   roles: text("roles").notNull().default("family_supporter"),
   /** How this person helps the club, e.g. "Carpooling · First aid" (club records) */
   helpsWith: text("helps_with"),
+  /** Club officer with access to the admin area. Never settable by users. */
+  isAdmin: boolean("is_admin").notNull().default(false),
 });
 
 export const session = pgTable("session", {
@@ -123,7 +125,7 @@ export const membershipFee = pgTable(
     amountCents: integer("amount_cents").notNull(),
     /** unpaid | pending | paid | sponsored */
     status: text("status").notNull().default("unpaid"),
-    paidByUserId: text("paid_by_user_id").references(() => user.id),
+    paidByUserId: text("paid_by_user_id").references(() => user.id, { onDelete: "set null" }),
     paymentRef: text("payment_ref"),
     paidAt: timestamp("paid_at"),
     createdAt: createdAt(),
@@ -189,9 +191,9 @@ export const eventResponse = pgTable(
       .references(() => member.id, { onDelete: "cascade" }),
     /** going | not_going */
     response: text("response").notNull(),
-    respondedByUserId: text("responded_by_user_id")
-      .notNull()
-      .references(() => user.id),
+    respondedByUserId: text("responded_by_user_id").references(() => user.id, {
+      onDelete: "set null",
+    }),
     updatedAt: updatedAt(),
   },
   (t) => [primaryKey({ columns: [t.eventId, t.memberId] })],
@@ -303,6 +305,25 @@ export const donation = pgTable(
 );
 
 /* -------------------------------------------------------------------------- */
+/* Governance                                                                 */
+/* -------------------------------------------------------------------------- */
+
+/** Every admin change is recorded, so club officers stay accountable. */
+export const auditLog = pgTable(
+  "audit_log",
+  {
+    id: id(),
+    actorUserId: text("actor_user_id").references(() => user.id, { onDelete: "set null" }),
+    actorName: text("actor_name").notNull(),
+    /** e.g. "event.cancel", "goal.resolve", "fee.mark_paid" */
+    action: text("action").notNull(),
+    summary: text("summary").notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [index("audit_created_idx").on(t.createdAt)],
+);
+
+/* -------------------------------------------------------------------------- */
 /* Relations (for db.query.*)                                                 */
 /* -------------------------------------------------------------------------- */
 
@@ -317,6 +338,11 @@ export const memberRelations = relations(member, ({ one, many }) => ({
   }),
   fees: many(membershipFee),
   responses: many(eventResponse),
+}));
+
+export const donationRelations = relations(donation, ({ one }) => ({
+  goal: one(goal, { fields: [donation.goalId], references: [goal.id] }),
+  user: one(user, { fields: [donation.userId], references: [user.id] }),
 }));
 
 export const membershipFeeRelations = relations(membershipFee, ({ one }) => ({

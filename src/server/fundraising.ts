@@ -9,13 +9,13 @@ import { canPay, canVote } from "@/lib/rules/roles";
 import type { CurrentUser } from "@/lib/session";
 import { payments, receiptNumber } from "./payments";
 
-type Tx = Parameters<Parameters<Database["transaction"]>[0]>[0];
-type Exec = Database | Tx;
+export type Tx = Parameters<Parameters<Database["transaction"]>[0]>[0];
+export type Exec = Database | Tx;
 
 export type Goal = typeof goal.$inferSelect;
 
 /** Confirmed total = money raised offline + succeeded online donations. */
-async function confirmedTotalCents(exec: Exec, g: Goal) {
+export async function confirmedTotalCents(exec: Exec, g: Goal) {
   const [row] = await exec
     .select({
       total: sql<number>`coalesce(sum(${donation.amountCents}), 0)::int`,
@@ -25,7 +25,7 @@ async function confirmedTotalCents(exec: Exec, g: Goal) {
   return g.offlineRaisedCents + Number(row?.total ?? 0);
 }
 
-async function getOpenRound(exec: Exec) {
+export async function getOpenRound(exec: Exec) {
   const [round] = await exec
     .select()
     .from(votingRound)
@@ -35,7 +35,7 @@ async function getOpenRound(exec: Exec) {
 }
 
 /** Vote counts for every proposed goal in a round, in display order. */
-async function talliesForRound(exec: Exec, roundId: string | null) {
+export async function talliesForRound(exec: Exec, roundId: string | null) {
   const candidates = await exec
     .select()
     .from(goal)
@@ -228,7 +228,7 @@ export async function makeDonation(
  * Runs once per completed campaign. The goal row is locked so concurrent
  * confirmations cannot activate several next goals.
  */
-async function advanceIfFunded(tx: Tx, goalId: string): Promise<ProgressionDecision> {
+export async function advanceIfFunded(tx: Tx, goalId: string): Promise<ProgressionDecision> {
   const [g] = await tx.select().from(goal).where(eq(goal.id, goalId)).for("update");
   if (!g || g.status !== "active") return { outcome: "retain" };
 

@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { auth } from "./auth";
 import { parseRoles, type Role } from "./rules/roles";
 
@@ -17,6 +17,7 @@ export type CurrentUser = {
   eircode: string | null;
   helpsWith: string | null;
   roles: Role[];
+  isAdmin: boolean;
 };
 
 /**
@@ -35,5 +36,13 @@ export async function requireUser(): Promise<CurrentUser> {
     eircode: u.eircode ?? null,
     helpsWith: u.helpsWith ?? null,
     roles: parseRoles(u.roles),
+    isAdmin: u.isAdmin === true,
   };
+}
+
+/** Like requireUser, but only for club admins; everyone else gets a 404. */
+export async function requireAdmin(): Promise<CurrentUser> {
+  const user = await requireUser();
+  if (!user.isAdmin) notFound();
+  return user;
 }

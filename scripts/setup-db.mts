@@ -12,6 +12,6 @@ if (!process.env.DATABASE_URL) {
 
 await migrateDatabase();
 console.log("✓ Database migrated");
-const { seedDatabase } = await import("./seed.mts");
+const { seedDatabase } = await import("../src/server/seed.ts");
 console.log((await seedDatabase()) ? "✓ Demo data seeded" : "• Existing data kept");
 process.exit(0);

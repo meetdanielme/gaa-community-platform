@@ -2,6 +2,6 @@ import { AppShell } from "@/components/app-shell";
 import { requireUser } from "@/lib/session";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  await requireUser();
-  return <AppShell>{children}</AppShell>;
+  const user = await requireUser();
+  return <AppShell isAdmin={user.isAdmin}>{children}</AppShell>;
 }
