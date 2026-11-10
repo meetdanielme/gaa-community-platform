@@ -8,6 +8,7 @@
 :root {
   --brand-primary: #003660;
   --brand-accent: #ffcb05;
+  --brand-alert: #e82c2e;
   --brand-ink: #231f20;
   --brand-muted: #647482;
   --brand-pale: #e8eff3;
@@ -17,6 +18,7 @@
 @theme inline {
   --color-navy: var(--brand-primary);
   --color-gold: var(--brand-accent);
+  --color-alert: var(--brand-alert);
   --color-ink: var(--brand-ink);
   --color-muted: var(--brand-muted);
   --color-pale: var(--brand-pale);

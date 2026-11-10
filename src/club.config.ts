@@ -27,15 +27,21 @@ export const clubConfig = {
   currency: "EUR",
   locale: "en-IE",
   timeZone: "Europe/Dublin",
-  /** Brand colours. Injected as CSS variables in the root layout. */
+  /** Brand colours (see docs/brand). Injected as CSS variables in the root layout. */
   colours: {
-    primary: "#003660", // navy
-    accent: "#ffcb05", // gold
+    primary: "#003660", // blue
+    accent: "#ffcb05", // yellow
+    alert: "#e82c2e", // red: sparing accent, never for small text on white
     ink: "#231f20",
     muted: "#647482",
     pale: "#e8eff3",
     paper: "#f4f6f8",
   },
+  /** Logo artwork. Keep the supplied lettering; don't retype the wordmark. */
+  logo: { src: "/brand/saints-logo.png", width: 720, height: 223 },
+  badge: { src: "/brand/saints-badge.png", width: 255, height: 256 },
+  /** Public site address, used for share links and emails. */
+  siteUrl: process.env.SITE_URL ?? "https://saintsgaa.social",
   codes,
   /** Membership fee per member per season, in cents. */
   membershipFeeCents: 12000,

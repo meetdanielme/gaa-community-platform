@@ -1,7 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { clubConfig, codes, eventCategories } from "@/club.config";
+import { codes, eventCategories } from "@/club.config";
+import { Badge } from "@/components/app-shell";
 import { FilterChips } from "@/components/filter-chips";
 import { PageBody, PageHeader } from "@/components/page-header";
 import { CodeTag, KindLabel, buttonClass } from "@/components/ui";
@@ -30,8 +31,8 @@ export default async function FeedPage({ searchParams }: PageProps<"/feed">) {
             {posts.map((p) => (
               <article key={p.id} className="flex flex-col gap-4 rounded-card bg-white p-5">
                 <div className="flex items-center gap-3">
-                  <span className="grid size-10 place-items-center rounded-full bg-navy text-lg font-semibold text-white">
-                    {clubConfig.name[0]}
+                  <span className="grid size-10 shrink-0 place-items-center rounded-full bg-paper">
+                    <Badge size={26} />
                   </span>
                   <div>
                     <p className="font-semibold">{p.authorName}</p>

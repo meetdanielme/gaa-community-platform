@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { Wordmark } from "@/components/app-shell";
+import { Logo } from "@/components/app-shell";
 import {
   BackIcon,
   CalendarIcon,
@@ -29,8 +29,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-dvh lg:pl-56">
       <aside className="fixed inset-y-0 left-0 hidden w-56 flex-col bg-navy px-5 py-7 text-white lg:flex">
-        <Link href="/admin" className="px-2 [&_span]:text-white">
-          <Wordmark />
+        <Link href="/admin" className="rounded-2xl bg-white px-3 py-3" aria-label="Admin dashboard">
+          <Logo width={160} />
         </Link>
         <p className="mt-3 px-2 text-xs font-semibold tracking-widest text-white/60 uppercase">Club admin</p>
         <nav aria-label="Admin" className="mt-8 flex flex-col gap-1">

@@ -1,0 +1,16 @@
+{
+  "brand": "Saints",
+  "colours": {
+    "blue": "#003660",
+    "red": "#E82C2E",
+    "yellow": "#FFCB05",
+    "black": "#231F20",
+    "white": "#FFFFFF",
+    "surface": "#F4F6F8"
+  },
+  "fonts": {
+    "headings": "Inter Bold",
+    "body": "Inter Regular",
+    "labels": "Inter Semi Bold"
+  }
+}

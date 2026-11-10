@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { clubConfig } from "@/club.config";
-import { Wordmark } from "@/components/app-shell";
+import { Logo } from "@/components/app-shell";
 import { buttonClass } from "@/components/ui";
 import { DemoSignInButton } from "@/components/demo-sign-in";
 import { getSession } from "@/lib/session";
@@ -28,7 +28,7 @@ export default async function LandingPage() {
   return (
     <div className="min-h-dvh bg-white">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-4 py-6 sm:px-8">
-        <Wordmark />
+        <Logo width={200} priority />
         <Link href="/sign-in" className="font-semibold text-navy hover:underline">
           Sign in
         </Link>

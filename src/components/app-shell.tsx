@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
@@ -14,13 +15,15 @@ const nav = [
   { href: "/profile", label: "Profile", Icon: PersonIcon },
 ] as const;
 
-export function Wordmark() {
-  return (
-    <span className="inline-flex flex-col gap-2">
-      <span className="text-2xl font-extrabold tracking-tight text-navy uppercase">{clubConfig.name}</span>
-      <span className="h-1 w-10 rounded-full bg-gold" />
-    </span>
-  );
+/** The club logo lockup (artwork, per the brand guidelines). */
+export function Logo({ width = 176, priority = false }: { width?: number; priority?: boolean }) {
+  const { src, width: w, height: h } = clubConfig.logo;
+  return <Image src={src} alt={clubConfig.fullName} width={width} height={Math.round((width * h) / w)} priority={priority} />;
+}
+
+/** The compact shield badge. */
+export function Badge({ size = 32, className = "" }: { size?: number; className?: string }) {
+  return <Image src={clubConfig.badge.src} alt="" width={size} height={size} className={className} />;
 }
 
 export function AppShell({ children, isAdmin = false }: { children: ReactNode; isAdmin?: boolean }) {
@@ -39,7 +42,7 @@ export function AppShell({ children, isAdmin = false }: { children: ReactNode; i
       {/* Desktop sidebar */}
       <aside className="fixed inset-y-0 left-0 hidden w-56 flex-col bg-white px-5 py-7 lg:flex">
         <Link href="/feed" aria-label={`${clubConfig.name} home`} className="px-2">
-          <Wordmark />
+          <Logo width={164} priority />
         </Link>
         <nav aria-label="Main" className="mt-12 flex flex-col gap-2">
           {nav.map(({ href, label, Icon }) => (

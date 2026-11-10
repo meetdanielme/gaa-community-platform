@@ -1,0 +1,32 @@
+[
+  {
+    "foreground": "blue",
+    "background": "white",
+    "ratio": 12.38,
+    "normal_text_AA": true
+  },
+  {
+    "foreground": "blue",
+    "background": "yellow",
+    "ratio": 8.13,
+    "normal_text_AA": true
+  },
+  {
+    "foreground": "black",
+    "background": "white",
+    "ratio": 16.3,
+    "normal_text_AA": true
+  },
+  {
+    "foreground": "black",
+    "background": "yellow",
+    "ratio": 10.71,
+    "normal_text_AA": true
+  },
+  {
+    "foreground": "red",
+    "background": "white",
+    "ratio": 4.35,
+    "normal_text_AA": false
+  }
+]

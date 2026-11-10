@@ -4,7 +4,7 @@
 
 It started as Group 16's design project for **IS2204 Visual Thinking for Systems Analysis & Design** at University College Cork, built around the fictional multi-code club *Saints*. The aim now is to grow it, with contributions from the rest of the class, into a **white-label platform any GAA club in Ireland can run**.
 
-> **Try the demo:** open the deployed site and click **Explore the demo** to sign in as Evan, a family supporter with three linked family members, or **Explore as club admin** to run the club as Aoife, the club secretary. Payments are simulated — no money is ever taken — and the demo resets every night.
+> **Try the demo:** open **[saintsgaa.social](https://saintsgaa.social)** and click **Explore the demo** to sign in as Evan, a family supporter with three linked family members, or **Explore as club admin** to run the club as Aoife, the club secretary. Payments are simulated — no money is ever taken — and the demo resets every night.
 
 ## What it does
 
@@ -93,9 +93,13 @@ docs/                   ← coursework traceability and design diagrams
 
 The flow for any feature is **page → action → service → rule**. Pages render, actions check the signed-in user and validate input with Zod, services talk to the database inside transactions, and rules make the decisions. Rules are pure functions with no database access, so they're easy to read and test.
 
+## Brand
+
+The Saints identity — logo, compact badge, colours (blue `#003660`, yellow `#FFCB05`, red `#E82C2E`, black `#231F20`) and Inter typography — lives in [`docs/brand`](docs/brand), with usage rules in [`brand-guidelines.md`](docs/brand/brand-guidelines.md). In short: use the logo artwork (never retype the wordmark), place it on white or a light surface, and keep red for sparing accents rather than small text. Web-ready files are in `public/brand/`; the app and share icons are in `src/app/`.
+
 ## Make it your club's
 
-1. Edit **[`src/club.config.ts`](src/club.config.ts)** — name, tagline, season, brand colours, codes, membership fee, donation presets.
+1. Edit **[`src/club.config.ts`](src/club.config.ts)** — name, tagline, season, brand colours, logo, codes, membership fee, donation presets. Replace the files in `public/brand/` and the icons in `src/app/` with your club's.
 2. Deploy with `DEMO_MODE=false` (no sample content, no demo buttons, no nightly reset) and `ADMIN_EMAILS=you@yourclub.ie`.
 3. Sign up with that email — you're the club's first admin. Create events, posts and fundraising goals from **/admin**, and grant admin access to other officers from **Members**.
 4. For email (password resets, reminders, cancellations), add `RESEND_API_KEY` and `EMAIL_FROM` from [Resend](https://resend.com).

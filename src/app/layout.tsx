@@ -7,6 +7,7 @@ import "./globals.css";
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(clubConfig.siteUrl),
   title: { default: clubConfig.fullName, template: `%s · ${clubConfig.name}` },
   description: clubConfig.description,
 };
@@ -18,6 +19,7 @@ export const viewport: Viewport = {
 const brandVars = {
   "--brand-primary": clubConfig.colours.primary,
   "--brand-accent": clubConfig.colours.accent,
+  "--brand-alert": clubConfig.colours.alert,
   "--brand-ink": clubConfig.colours.ink,
   "--brand-muted": clubConfig.colours.muted,
   "--brand-pale": clubConfig.colours.pale,

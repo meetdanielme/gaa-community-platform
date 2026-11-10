@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { Badge } from "./app-shell";
 import { BackIcon } from "./icons";
 
 /** Figma "Navigation header": title, optional back link and action. */
@@ -23,6 +24,7 @@ export function PageHeader({
           <BackIcon />
         </Link>
       )}
+      {!backHref && <Badge size={30} className="lg:hidden" />}
       <h1 className={`flex-1 font-bold tracking-tight ${backHref ? "text-2xl" : "text-3xl"}`}>{title}</h1>
       {action}
     </header>
