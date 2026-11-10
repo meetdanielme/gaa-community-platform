@@ -136,7 +136,16 @@ Ideas we'd love help with — open an issue to discuss before starting on a big 
 
 ## Credits
 
-Designed and built by IS2204 Group 16, University College Cork (2026): Evan Alam, Idayat Majolagbe, Daniel Marcinkowski, Chloe Mitellus, Emma Ntumobe and Sandu Stati Suman.
+Designed and built by IS2204 Group 16, University College Cork (2026):
+
+| Team member | LinkedIn | GitHub |
+| --- | --- | --- |
+| Evan Alam | [Evan Alam](https://ie.linkedin.com/in/evan-alam-565b33384) | — |
+| Idayat Majolagbe | — | — |
+| Daniel Marcinkowski | [Daniel Marcinkowski](https://ie.linkedin.com/in/meetdanielme) | [@meetdanielme](https://github.com/meetdanielme) |
+| Chloe Mitellus | [Chloé Mitellus](https://ie.linkedin.com/in/chlo%C3%A9-mitellus-504072386) | — |
+| Emma Ntumobe | [Emmanuella Ntumobe](https://ie.linkedin.com/in/emmanuella-ntumobe-52b797384) | — |
+| Sandu Stati Suman | [Sandu Stati Suman](https://ie.linkedin.com/in/sandu-stati-suman-595b30384) | [@courius](https://github.com/courius) |
 
 Photography by Adrian Payne (sliotar), Rémi Müller (pitch maintenance) and enrico bet (Croke Park) on [Unsplash](https://unsplash.com/license). Saints is a fictional club; any costs shown are illustrative.
 
