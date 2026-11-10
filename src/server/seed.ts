@@ -12,7 +12,7 @@ import * as data from "./demo-data";
 async function reset() {
   await db.execute(sql`
     truncate table audit_log, vote, voting_round, donation, goal,
-      event_reminder, event_response, event, post, membership_fee, membership, member,
+      event_reminder, event_response, event, post, membership_fee, membership, member_handover, member,
       session, account, verification, "user" cascade
   `);
 }

@@ -31,7 +31,7 @@ export const demoUser = {
     {
       fullName: "Sandu Alam",
       relationship: "child",
-      dateOfBirth: "2009-04-12",
+      dateOfBirth: "2008-04-12",
       memberships: [
         { code: "football", fee: "unpaid" },
         { code: "hurling", fee: "unpaid" },

@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { Field, Input } from "@/components/form";
 import { limits } from "@/lib/limits";
+import { safeNext } from "@/lib/format";
 import { Button, Notice } from "@/components/ui";
 import { ROLES, roleLabels, serializeRoles, type Role } from "@/lib/rules/roles";
 
@@ -15,7 +16,17 @@ const roleHints: Record<Role, string> = {
 };
 
 export default function SignUpPage() {
+  return (
+    <Suspense>
+      <SignUpForm />
+    </Suspense>
+  );
+}
+
+function SignUpForm() {
   const router = useRouter();
+  const params = useSearchParams();
+  const next = safeNext(params.get("next"), "/profile");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -40,7 +51,7 @@ export default function SignUpPage() {
       setPending(false);
       return;
     }
-    router.push("/profile");
+    router.push(next);
     router.refresh();
   }
 
@@ -55,7 +66,7 @@ export default function SignUpPage() {
           <Input name="name" autoComplete="name" limit={limits.contact.name} />
         </Field>
         <Field label="Email">
-          <Input name="email" type="email" autoComplete="email" required />
+          <Input name="email" type="email" autoComplete="email" defaultValue={params.get("email") ?? ""} required />
         </Field>
         <Field label="Password" hint="At least 8 characters.">
           <Input name="password" type="password" autoComplete="new-password" required minLength={8} />
@@ -85,7 +96,7 @@ export default function SignUpPage() {
       </form>
       <p className="text-center text-sm text-muted">
         Already a member?{" "}
-        <Link href="/sign-in" className="font-semibold text-navy hover:underline">
+        <Link href={next === "/profile" ? "/sign-in" : `/sign-in?${new URLSearchParams({ next, email: params.get("email") ?? "" })}`} className="font-semibold text-navy hover:underline">
           Sign in
         </Link>
       </p>

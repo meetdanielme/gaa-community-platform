@@ -59,3 +59,8 @@ export function initials(name: string) {
     .map((p) => p[0]!.toUpperCase())
     .join("");
 }
+
+/** A same-site path to return to after signing in, e.g. "/claim/abc"; anything else falls back. */
+export function safeNext(next: string | null | undefined, fallback: string) {
+  return next && next.startsWith("/") && !next.startsWith("//") && !next.startsWith("/\\") ? next : fallback;
+}

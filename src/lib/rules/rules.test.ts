@@ -3,7 +3,8 @@
  * business-rules pack, so the coursework and the code stay in step.
  */
 import { describe, expect, it } from "vitest";
-import { formatMoney, parseEuros } from "../format";
+import { formatMoney, parseEuros, safeNext } from "../format";
+import { adultFrom, ageOn, decideClaim, decideHandover } from "./handover";
 import { decideClearVote, decideVote } from "./voting";
 import { decideProgression } from "./progression";
 import { decideFeePayment, validateDonation } from "./payments";
@@ -230,5 +231,43 @@ describe("money amounts", () => {
   it("shows cents only when there are some", () => {
     expect(formatMoney(1500)).toBe("€15");
     expect(formatMoney(1250)).toBe("€12.50");
+  });
+});
+
+describe("handing a member over to their own account", () => {
+  const today = new Date("2026-11-10T12:00:00Z");
+  const base = { relationship: "child", today, adultAge: 18 };
+  it("works out age on the day", () => {
+    expect(ageOn("2008-11-10", today)).toBe(18);
+    expect(ageOn("2008-11-11", today)).toBe(17);
+    expect(adultFrom("2008-11-11", 18)).toBe("2026-11-11");
+  });
+  it("is allowed from the 18th birthday, for linked members only", () => {
+    expect(decideHandover({ ...base, dateOfBirth: "2008-11-10" })).toEqual({ ok: true });
+    expect(decideHandover({ ...base, dateOfBirth: "2008-11-11" })).toEqual({ ok: false, reason: "too_young" });
+    expect(decideHandover({ ...base, dateOfBirth: null })).toEqual({ ok: false, reason: "no_date_of_birth" });
+    expect(decideHandover({ ...base, relationship: "self", dateOfBirth: "1990-01-01" })).toMatchObject({ reason: "is_self" });
+  });
+  it("is accepted only by the invited email, once, before it expires", () => {
+    const claim = {
+      inviteFound: true,
+      acceptedAt: null,
+      expiresAt: new Date("2026-11-20"),
+      now: today,
+      invitedEmail: "Sandu@example.com",
+      accountEmail: "sandu@example.com",
+      accountProfileHasHistory: false,
+    };
+    expect(decideClaim(claim)).toEqual({ ok: true });
+    expect(decideClaim({ ...claim, accountEmail: "evan@example.com" })).toMatchObject({ reason: "wrong_account" });
+    expect(decideClaim({ ...claim, acceptedAt: today })).toMatchObject({ reason: "already_claimed" });
+    expect(decideClaim({ ...claim, expiresAt: new Date("2026-11-01") })).toMatchObject({ reason: "expired" });
+    expect(decideClaim({ ...claim, accountProfileHasHistory: true })).toMatchObject({ reason: "account_has_profile" });
+  });
+  it("only returns to same-site pages after sign-in", () => {
+    expect(safeNext("/claim/abc", "/feed")).toBe("/claim/abc");
+    expect(safeNext("//evil.example", "/feed")).toBe("/feed");
+    expect(safeNext("https://evil.example", "/feed")).toBe("/feed");
+    expect(safeNext(null, "/feed")).toBe("/feed");
   });
 });

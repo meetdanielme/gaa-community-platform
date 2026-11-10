@@ -129,6 +129,28 @@ export const membership = pgTable(
   (t) => [uniqueIndex("membership_member_code_uq").on(t.memberId, t.code)],
 );
 
+/**
+ * An invitation for an adult linked member to manage their own profile.
+ * Only a hash of the emailed token is stored.
+ */
+export const memberHandover = pgTable(
+  "member_handover",
+  {
+    id: id(),
+    memberId: text("member_id")
+      .notNull()
+      .references(() => member.id, { onDelete: "cascade" }),
+    email: text("email").notNull(),
+    tokenHash: text("token_hash").notNull(),
+    invitedByUserId: text("invited_by_user_id").references(() => user.id, { onDelete: "set null" }),
+    expiresAt: timestamp("expires_at").notNull(),
+    acceptedAt: timestamp("accepted_at"),
+    acceptedByUserId: text("accepted_by_user_id").references(() => user.id, { onDelete: "set null" }),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex("handover_token_uq").on(t.tokenHash), index("handover_member_idx").on(t.memberId)],
+);
+
 /** UC5 Pay membership fees */
 export const membershipFee = pgTable(
   "membership_fee",

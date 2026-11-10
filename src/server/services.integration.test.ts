@@ -381,7 +381,8 @@ describe("admin (club officers)", () => {
     expect(actions).toMatch(/Recorded €.* — Golf classic/);
     // Families cancelling paid memberships are logged too, so the treasurer sees them.
     expect(actions).toMatch(/Emmanuella Alam: cancelled paid .* Camogie .*Refund review needed/);
-    expect(activity.filter((a) => a.action !== "membership.cancel_paid").every((a) => a.actorName === "Aoife Byrne")).toBe(true);
+    const familyActions = ["membership.cancel_paid", "member.handover_invite", "member.handover_accept"];
+    expect(activity.filter((a) => !familyActions.includes(a.action)).every((a) => a.actorName === "Aoife Byrne")).toBe(true);
   });
 
   it("lets families add, edit and remove members (but never their own profile)", async () => {
@@ -429,5 +430,48 @@ describe("admin (club officers)", () => {
     expect(result.demoReset).toBe(true);
     const o = await svc.fundraising.getFundraisingOverview(evan.id);
     expect(o.active?.title).toBe("New Lockers");
+  });
+});
+
+describe("handing an adult member their own account", () => {
+  it("invites, then moves the profile with its memberships to the new account", async () => {
+    const { eq } = await import("drizzle-orm");
+    const { schema, db } = svc.db;
+    const handover = await import("./handover");
+    // The daily job above reset the demo, so look Evan up again.
+    const [u] = await db.select().from(schema.user).where(eq(schema.user.email, "evan@example.com"));
+    const parent = { ...evan, id: u.id };
+    const family = await svc.profile.getFamily(parent.id);
+    const sandu = family.find((m) => m.fullName === "Sandu Alam")!;
+    const emmanuella = family.find((m) => m.fullName === "Emmanuella Alam")!;
+
+    expect(await handover.inviteToOwnAccount(parent, emmanuella.id, "em@example.com")).toMatchObject({ ok: false });
+    expect(await handover.inviteToOwnAccount(parent, sandu.id, "evan@example.com")).toMatchObject({ ok: false });
+    const stranger = { ...parent, id: crypto.randomUUID() };
+    expect(await handover.inviteToOwnAccount(stranger, sandu.id, "sandu@example.com")).toMatchObject({ ok: false });
+
+    const invite = await handover.inviteToOwnAccount(parent, sandu.id, "Sandu@Example.com");
+    expect(invite).toMatchObject({ ok: true, email: "sandu@example.com" });
+    const token = invite.ok ? invite.link.split("/claim/")[1] : "";
+    expect((await handover.getPendingHandover(sandu.id))?.email).toBe("sandu@example.com");
+
+    // Sandu signs up: like the auth hook, the new account gets an empty profile.
+    const sanduUserId = crypto.randomUUID();
+    await db.insert(schema.user).values({ id: sanduUserId, name: "Sandu Alam", email: "sandu@example.com", roles: "player" });
+    await db.insert(schema.member).values({ managedByUserId: sanduUserId, fullName: "Sandu Alam", relationship: "self" });
+    const sanduUser = { ...parent, id: sanduUserId, name: "Sandu Alam", email: "sandu@example.com", roles: ["player" as const] };
+
+    expect(await handover.claimProfile(parent, token)).toMatchObject({ ok: false, reason: "wrong_account" });
+    expect(await handover.claimProfile(sanduUser, token)).toMatchObject({ ok: true });
+
+    const own = await svc.profile.getFamily(sanduUserId);
+    expect(own).toHaveLength(1);
+    expect(own[0]).toMatchObject({ id: sandu.id, relationship: "self", codes: ["hurling", "football"] });
+    expect(own[0].fees.every((f) => f.fee !== null)).toBe(true);
+    expect((await svc.profile.getFamily(parent.id)).some((m) => m.id === sandu.id)).toBe(false);
+    const [after] = await db.select().from(schema.user).where(eq(schema.user.id, sanduUserId));
+    expect(after.roles).toBe("player,family_supporter");
+
+    expect(await handover.claimProfile(sanduUser, token)).toMatchObject({ ok: false, reason: "already_claimed" });
   });
 });

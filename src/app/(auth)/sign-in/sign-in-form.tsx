@@ -7,10 +7,13 @@ import { authClient } from "@/lib/auth-client";
 import { DemoSignInButton } from "@/components/demo-sign-in";
 import { Field, Input } from "@/components/form";
 import { Button, Notice } from "@/components/ui";
+import { safeNext } from "@/lib/format";
 
 export function SignInForm({ demoMode }: { demoMode: boolean }) {
   const router = useRouter();
-  const justReset = useSearchParams().get("reset") === "1";
+  const params = useSearchParams();
+  const justReset = params.get("reset") === "1";
+  const next = safeNext(params.get("next"), "/feed");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -28,7 +31,7 @@ export function SignInForm({ demoMode }: { demoMode: boolean }) {
       setPending(false);
       return;
     }
-    router.push("/feed");
+    router.push(next);
     router.refresh();
   }
 
@@ -40,7 +43,7 @@ export function SignInForm({ demoMode }: { demoMode: boolean }) {
       </div>
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
         <Field label="Email">
-          <Input name="email" type="email" autoComplete="email" required />
+          <Input name="email" type="email" autoComplete="email" defaultValue={params.get("email") ?? ""} required />
         </Field>
         <Field
           label="Password"
@@ -69,7 +72,7 @@ export function SignInForm({ demoMode }: { demoMode: boolean }) {
       )}
       <p className="text-center text-sm text-muted">
         New to the club?{" "}
-        <Link href="/sign-up" className="font-semibold text-navy hover:underline">
+        <Link href={next === "/feed" ? "/sign-up" : `/sign-up?${new URLSearchParams({ next, email: params.get("email") ?? "" })}`} className="font-semibold text-navy hover:underline">
           Create an account
         </Link>
       </p>

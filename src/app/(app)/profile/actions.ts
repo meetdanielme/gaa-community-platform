@@ -14,6 +14,7 @@ import {
   updateContactDetails,
 } from "@/server/profile";
 import { savedMessage } from "@/lib/members";
+import { cancelHandover, inviteToOwnAccount } from "@/server/handover";
 
 /* BR01 — validate before saving; on failure the previous saved state is kept. */
 export async function updateContactAction(_: FormState, formData: FormData): Promise<FormState> {
@@ -81,4 +82,23 @@ export async function payFeeAction(feeId: string, methodId: string): Promise<Fee
   if (!result.ok) return { ok: false, error: feeMessages[result.reason] };
   if (result.status === "succeeded") return { ok: true, status: "succeeded", receipt: result.receipt };
   return { ok: true, status: result.status };
+}
+
+export type HandoverResult = { ok: true; email: string; link: string } | { ok: false; error: string };
+
+/* Invite an adult family member to manage their own profile (parent or club admin). */
+export async function inviteHandoverAction(memberId: string, email: string): Promise<HandoverResult> {
+  const user = await requireUser();
+  const parsed = z.string().trim().email().max(254).safeParse(email);
+  if (!parsed.success) return { ok: false, error: "Enter a valid email address." };
+  const result = await inviteToOwnAccount(user, z.string().uuid().parse(memberId), parsed.data);
+  if (!result.ok) return { ok: false, error: result.error };
+  refresh();
+  return { ok: true, email: result.email, link: result.link };
+}
+
+export async function cancelHandoverAction(memberId: string) {
+  const user = await requireUser();
+  await cancelHandover(user, z.string().uuid().parse(memberId));
+  refresh();
 }

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { clubConfig } from "@/club.config";
 import { PageBody, PageHeader } from "@/components/page-header";
-import { Card, LinkButton, Tag } from "@/components/ui";
+import { Card, LinkButton, Notice, Tag } from "@/components/ui";
 import { initials } from "@/lib/format";
 import { memberSummary } from "@/lib/members";
 import { roleLabels } from "@/lib/rules/roles";
@@ -17,7 +17,8 @@ import { ThemePicker } from "./theme-picker";
 
 export const metadata: Metadata = { title: "Profile" };
 
-export default async function ProfilePage() {
+export default async function ProfilePage({ searchParams }: PageProps<"/profile">) {
+  const { claimed } = await searchParams;
   const user = await requireUser();
   const [family, upcoming] = await Promise.all([getFamily(user.id), listMyUpcomingEvents(user.id)]);
   const self = family.find((m) => m.relationship === "self");
@@ -26,6 +27,11 @@ export default async function ProfilePage() {
   return (
     <>
       <PageHeader title="Profile" action={<SignOutButton className="lg:hidden" />} />
+      {claimed && (
+        <div className="px-4 pt-6 sm:px-10">
+          <Notice tone="success">Welcome! This is now your own profile. You manage your memberships and events from here.</Notice>
+        </div>
+      )}
       <PageBody className="grid gap-6 lg:grid-cols-[minmax(0,390px)_1fr]">
         <section className="flex flex-col gap-6">
           <Card className="flex flex-col gap-3">

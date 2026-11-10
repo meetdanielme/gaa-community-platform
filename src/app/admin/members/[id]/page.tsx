@@ -18,6 +18,9 @@ import {
   setFeeStatusAction,
 } from "../actions";
 import { AccessForm } from "./access-form";
+import { HandoverPanel } from "@/app/(app)/profile/handover-panel";
+import { decideHandover } from "@/lib/rules/handover";
+import { getPendingHandover } from "@/server/handover";
 import { PaidMembershipWarning } from "@/app/(app)/profile/paid-warning";
 
 export const metadata: Metadata = { title: "Member account" };
@@ -30,6 +33,17 @@ export default async function AdminAccountPage({ params }: PageProps<"/admin/mem
   const account = await getAccount(id);
   if (!account) notFound();
   const { user: u, members } = account;
+  const now = new Date();
+  const handovers = new Map(
+    await Promise.all(
+      members
+        .filter((m) => decideHandover({ ...m, today: now, adultAge: clubConfig.adultAge }).ok)
+        .map(async (m) => {
+          const p = await getPendingHandover(m.id);
+          return [m.id, p && { email: p.email, expires: formatLongDate(p.expiresAt) }] as const;
+        }),
+    ),
+  );
 
   return (
     <AdminPage title={u.name} description={u.email} back={{ href: "/admin/members", label: "Members" }}>
@@ -120,6 +134,14 @@ export default async function AdminAccountPage({ params }: PageProps<"/admin/mem
                   review refund
                 </p>
               ))}
+              {handovers.has(m.id) && (
+                <HandoverPanel
+                  adminView
+                  memberId={m.id}
+                  memberName={m.fullName}
+                  pending={handovers.get(m.id) ?? null}
+                />
+              )}
               <div className="flex flex-wrap gap-2">
                 <SheetButton label="Edit" title={`Edit ${m.fullName}`} size="sm" variant="ghost">
                   <MemberForm

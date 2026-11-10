@@ -56,6 +56,10 @@ export const clubConfig = {
    */
   ageGrades: [8, 10, 12, 14, 16, 18, 20],
   minPlayingAge: 4,
+  /** From this age a linked member can be handed over to their own account. */
+  adultAge: 18,
+  /** How long a hand-over invitation link stays valid, in days. */
+  handoverInviteDays: 14,
   /** Preset one-off donation amounts in cents. */
   donationPresetsCents: [1000, 2500, 5000],
   maxDonationCents: 100000,

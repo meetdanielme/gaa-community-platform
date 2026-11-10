@@ -15,6 +15,9 @@ import { MemberForm } from "../../member-form";
 import { removeMemberAction, saveMemberAction } from "../../actions";
 import { SheetButton } from "@/components/sheet-button";
 import { CancelMembershipButton, PayFeeButton } from "./member-actions";
+import { HandoverPanel } from "../../handover-panel";
+import { adultFrom, decideHandover } from "@/lib/rules/handover";
+import { getPendingHandover } from "@/server/handover";
 import { PaidMembershipWarning } from "../../paid-warning";
 
 export const metadata: Metadata = { title: "Member details" };
@@ -29,6 +32,13 @@ export default async function MemberPage({ params, searchParams }: PageProps<"/p
   const isSelf = m.relationship === "self";
   const firstName = user.name.split(" ")[0];
   const methods = demoPaymentMethods.map((x) => ({ id: x.id, label: x.label, note: x.note }));
+  const handover = decideHandover({
+    relationship: m.relationship,
+    dateOfBirth: m.dateOfBirth,
+    today: new Date(),
+    adultAge: clubConfig.adultAge,
+  });
+  const pendingInvite = handover.ok ? await getPendingHandover(m.id) : null;
   const paidCodes = m.fees.filter((f) => f.fee && cancellationNeedsAlert(f.fee.status)).map((f) => f.code);
 
   return (
@@ -111,6 +121,22 @@ export default async function MemberPage({ params, searchParams }: PageProps<"/p
               </p>
             ))}
           </Card>
+        )}
+
+        {handover.ok ? (
+          <HandoverPanel
+            memberId={m.id}
+            memberName={m.fullName}
+            pending={pendingInvite && { email: pendingInvite.email, expires: formatLongDate(pendingInvite.expiresAt) }}
+          />
+        ) : (
+          handover.reason === "too_young" &&
+          m.dateOfBirth && (
+            <p className="text-sm text-muted">
+              From {formatLongDate(new Date(adultFrom(m.dateOfBirth, clubConfig.adultAge)))}, {m.fullName.split(" ")[0]}{" "}
+              can have their own account and manage this profile themselves.
+            </p>
+          )
         )}
 
         <div>
