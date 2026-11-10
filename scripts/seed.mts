@@ -15,9 +15,9 @@ import * as data from "./seed-data.mts";
 
 async function reset() {
   await db.execute(sql`
-    truncate table vote, voting_round, donation, goal, volunteer_assignment,
-      volunteer_role, event_reminder, event_response, event, post_like, post,
-      membership_fee, member, session, account, verification, "user" cascade
+    truncate table vote, voting_round, donation, goal, event_reminder,
+      event_response, event, post, membership_fee, member, session, account,
+      verification, "user" cascade
   `);
 }
 
@@ -88,15 +88,10 @@ async function seed() {
   }
 
   // --- Feed ---------------------------------------------------------------
-  const insertedPosts = await db.insert(s.post).values(data.posts).returning();
+  await db.insert(s.post).values(data.posts);
 
   // --- Events -------------------------------------------------------------
-  for (const { roles, ...e } of data.events) {
-    const [created] = await db.insert(s.event).values(e).returning();
-    if (roles.length) {
-      await db.insert(s.volunteerRole).values(roles.map((r) => ({ ...r, eventId: created.id })));
-    }
-  }
+  await db.insert(s.event).values(data.events);
 
   // --- Fundraising --------------------------------------------------------
   const [lockers] = await db
@@ -139,13 +134,6 @@ async function seed() {
     })),
   );
   await db.insert(s.vote).values(votes);
-
-  // A few likes so the feed feels lived in.
-  await db.insert(s.postLike).values(
-    insertedPosts.flatMap((p, pi) =>
-      voterRows.slice(pi * 7, pi * 7 + 20 + pi).map((u) => ({ postId: p.id, userId: u.id })),
-    ),
-  );
 }
 
 export async function seedDatabase({ reset: shouldReset = false } = {}) {

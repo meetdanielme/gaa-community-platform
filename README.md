@@ -1,6 +1,6 @@
 # Saints GAA Community Platform
 
-**One club. Every generation.** An open-source community platform for GAA clubs: one place for players, families and volunteers across hurling, football, camogie and ladies' football to follow club news, respond to events, volunteer, pay membership and fund shared goals they choose together.
+**One club. Every generation.** An open-source community platform for GAA clubs: one place for players and families across hurling, football, camogie and ladies' football to follow club news, respond to events, pay membership and fund shared goals they choose together.
 
 It started as Group 16's design project for **IS2204 Visual Thinking for Systems Analysis & Design** at University College Cork, built around the fictional multi-code club *Saints*. The aim now is to grow it, with contributions from the rest of the class, into a **white-label platform any GAA club in Ireland can run**.
 
@@ -10,14 +10,16 @@ It started as Group 16's design project for **IS2204 Visual Thinking for Systems
 
 | | Feature | Use case |
 | --- | --- | --- |
-| 📰 | **Feed** — club updates from all four codes, with likes | UC2 View club updates and events |
+| 📰 | **Feed** — club updates from all four codes | UC2 View club updates and events |
 | 📅 | **Events** — calendar filtered by code, event details and schedules, reminders, share links | UC2 |
 | ✅ | **Respond** for yourself or any family member you manage, with capacity and deadline checks | UC3 Respond to event invitations |
-| 🙋 | **Volunteer** for roles at events, with same-day conflict warnings | UC4 Volunteer for an activity |
 | 💳 | **Membership fees** per member per season (demo payments) | UC5 Pay membership fees |
 | 💛 | **Donate** to the club's one active goal, with a transparent cost breakdown | UC6 Make a donation |
 | 🗳️ | **Vote** for the next goal — one member, one vote; the top goal becomes active when the current one is funded | UC7 Vote for next donation goal |
-| 👪 | **Profiles** — contact details, roles, linked family members | UC1 Maintain member and family profile |
+| 👪 | **Profiles** — contact details and linked family members | UC1 Maintain member and family profile |
+| 🔗 | **Share** goals and events | Share fundraising goal details |
+
+The scope matches the team's **Sprint 4** submission: the hi-fi prototype screens and the donation/voting core from the DFDs. Volunteering (UC4) is in the use-case model but not the prototype, so it's left for a future contribution.
 
 Every rule behind those features (BR01–BR08 from the coursework) lives in [`src/lib/rules`](src/lib/rules) as small, tested functions. See [docs/coursework-traceability.md](docs/coursework-traceability.md) for how use cases, activity diagrams, rules, code and tests line up.
 
@@ -102,6 +104,8 @@ Classmates, other clubs and anyone who loves the GAA are welcome. Start with [CO
 
 Ideas we'd love help with — open an issue to discuss before starting on a big one:
 
+- **Volunteering (UC4)** — sign up for roles at events, with capacity and conflict checks (BR04 is already specified in the coursework)
+- **Family self-service** — add and edit linked family members (today the club manages these records)
 - **Club admin area** — post updates, create events and volunteer roles, propose goals, resolve tied votes (today this is seed data only; club operations were outside the original design boundary)
 - **Multi-club (multi-tenant)** — host many clubs on one deployment, each with its own branding
 - **Real payments** — implement the `PaymentProvider` interface in `src/server/payments.ts` with Stripe

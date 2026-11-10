@@ -8,7 +8,7 @@ import { Card, DetailRows, Notice, Tag } from "@/components/ui";
 import { formatLongDate, formatTime } from "@/lib/format";
 import { requireUser } from "@/lib/session";
 import { getEventDetail } from "@/server/events";
-import { ReminderToggle, RespondButton, VolunteerRoles } from "./event-actions";
+import { ReminderToggle, RespondButton } from "./event-actions";
 
 export async function generateMetadata({ params }: PageProps<"/events/[slug]">): Promise<Metadata> {
   const { slug } = await params;
@@ -21,7 +21,7 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
   const detail = await getEventDetail(slug, user.id);
   if (!detail) notFound();
 
-  const { event: e, attendees, goingCount, reminderOn, volunteerRoles } = detail;
+  const { event: e, attendees, goingCount, reminderOn } = detail;
   const isPast = e.startsAt <= new Date();
   const isCancelled = e.status === "cancelled";
 
@@ -101,7 +101,6 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
             </div>
           )}
 
-          {!isPast && !isCancelled && volunteerRoles.length > 0 && <VolunteerRoles roles={volunteerRoles} />}
         </section>
       </PageBody>
     </>

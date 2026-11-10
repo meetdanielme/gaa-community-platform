@@ -6,17 +6,17 @@ import { describe, expect, it } from "vitest";
 import { decideVote } from "./voting";
 import { decideProgression } from "./progression";
 import { decideFeePayment, validateDonation } from "./payments";
-import { decideEventResponse, decideVolunteer } from "./events";
-import { canPay, canVolunteer, canVote, parseRoles } from "./roles";
+import { decideEventResponse } from "./events";
+import { canPay, canVote, parseRoles } from "./roles";
 
 describe("roles", () => {
   it("parses and filters unknown roles", () => {
-    expect(parseRoles("player, volunteer,admin")).toEqual(["player", "volunteer"]);
+    expect(parseRoles("player, family_supporter,admin")).toEqual(["player", "family_supporter"]);
   });
   it("maps actors to use cases", () => {
-    expect(canVote(["volunteer"])).toBe(false);
+    expect(canVote([])).toBe(false);
     expect(canVote(["player"])).toBe(true);
-    expect(canVolunteer(["player"])).toBe(false);
+    expect(canPay(["player"])).toBe(false);
     expect(canPay(["family_supporter"])).toBe(true);
   });
 });
@@ -159,31 +159,5 @@ describe("BR03 event response", () => {
     expect(
       decideEventResponse({ ...base, capacity: null, rsvpDeadline: new Date("2026-10-19") }),
     ).toMatchObject({ reason: "deadline_passed" });
-  });
-});
-
-describe("BR04 volunteering", () => {
-  const base = {
-    eligible: true,
-    eventOpen: true,
-    assignedCount: 1,
-    capacity: 3,
-    alreadyAssigned: false,
-    hasConflict: false,
-    acknowledgedConflict: false,
-  };
-  it("assigns when open and there is room", () => {
-    expect(decideVolunteer(base)).toEqual({ ok: true });
-  });
-  it("warns about a conflict, then allows after acknowledgement", () => {
-    expect(decideVolunteer({ ...base, hasConflict: true })).toMatchObject({
-      reason: "conflict",
-    });
-    expect(
-      decideVolunteer({ ...base, hasConflict: true, acknowledgedConflict: true }),
-    ).toEqual({ ok: true });
-  });
-  it("rejects when full", () => {
-    expect(decideVolunteer({ ...base, assignedCount: 3 })).toMatchObject({ reason: "full" });
   });
 });

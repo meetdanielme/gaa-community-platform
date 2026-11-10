@@ -116,13 +116,6 @@ CREATE TABLE "post" (
 	"published_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "post_like" (
-	"post_id" text NOT NULL,
-	"user_id" text NOT NULL,
-	"created_at" timestamp DEFAULT now() NOT NULL,
-	CONSTRAINT "post_like_post_id_user_id_pk" PRIMARY KEY("post_id","user_id")
-);
---> statement-breakpoint
 CREATE TABLE "session" (
 	"id" text PRIMARY KEY NOT NULL,
 	"expires_at" timestamp NOT NULL,
@@ -159,23 +152,6 @@ CREATE TABLE "verification" (
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "volunteer_assignment" (
-	"role_id" text NOT NULL,
-	"user_id" text NOT NULL,
-	"acknowledged_conflict" boolean DEFAULT false NOT NULL,
-	"created_at" timestamp DEFAULT now() NOT NULL,
-	CONSTRAINT "volunteer_assignment_role_id_user_id_pk" PRIMARY KEY("role_id","user_id")
-);
---> statement-breakpoint
-CREATE TABLE "volunteer_role" (
-	"id" text PRIMARY KEY NOT NULL,
-	"event_id" text NOT NULL,
-	"title" text NOT NULL,
-	"description" text NOT NULL,
-	"capacity" integer NOT NULL,
-	"requirement" text
-);
---> statement-breakpoint
 CREATE TABLE "vote" (
 	"round_id" text NOT NULL,
 	"user_id" text NOT NULL,
@@ -204,12 +180,7 @@ ALTER TABLE "event_response" ADD CONSTRAINT "event_response_responded_by_user_id
 ALTER TABLE "member" ADD CONSTRAINT "member_managed_by_user_id_user_id_fk" FOREIGN KEY ("managed_by_user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "membership_fee" ADD CONSTRAINT "membership_fee_member_id_member_id_fk" FOREIGN KEY ("member_id") REFERENCES "public"."member"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "membership_fee" ADD CONSTRAINT "membership_fee_paid_by_user_id_user_id_fk" FOREIGN KEY ("paid_by_user_id") REFERENCES "public"."user"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "post_like" ADD CONSTRAINT "post_like_post_id_post_id_fk" FOREIGN KEY ("post_id") REFERENCES "public"."post"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "post_like" ADD CONSTRAINT "post_like_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "session" ADD CONSTRAINT "session_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "volunteer_assignment" ADD CONSTRAINT "volunteer_assignment_role_id_volunteer_role_id_fk" FOREIGN KEY ("role_id") REFERENCES "public"."volunteer_role"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "volunteer_assignment" ADD CONSTRAINT "volunteer_assignment_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "volunteer_role" ADD CONSTRAINT "volunteer_role_event_id_event_id_fk" FOREIGN KEY ("event_id") REFERENCES "public"."event"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "vote" ADD CONSTRAINT "vote_round_id_voting_round_id_fk" FOREIGN KEY ("round_id") REFERENCES "public"."voting_round"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "vote" ADD CONSTRAINT "vote_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "vote" ADD CONSTRAINT "vote_goal_id_goal_id_fk" FOREIGN KEY ("goal_id") REFERENCES "public"."goal"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint

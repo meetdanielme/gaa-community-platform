@@ -1,19 +1,7 @@
 import { and, asc, desc, eq, gte, inArray, lt, sql } from "drizzle-orm";
 import { db } from "@/db";
-import {
-  event,
-  eventReminder,
-  eventResponse,
-  member,
-  volunteerAssignment,
-  volunteerRole,
-} from "@/db/schema";
-import {
-  decideEventResponse,
-  decideVolunteer,
-  type EventResponseChoice,
-} from "@/lib/rules/events";
-import { canVolunteer } from "@/lib/rules/roles";
+import { event, eventReminder, eventResponse, member } from "@/db/schema";
+import { decideEventResponse, type EventResponseChoice } from "@/lib/rules/events";
 import type { CurrentUser } from "@/lib/session";
 
 export type ClubEvent = typeof event.$inferSelect;
@@ -74,11 +62,6 @@ export async function getEventDetail(slug: string, userId: string) {
     .from(eventReminder)
     .where(and(eq(eventReminder.eventId, e.id), eq(eventReminder.userId, userId)));
 
-  const roles = await db.query.volunteerRole.findMany({
-    where: eq(volunteerRole.eventId, e.id),
-    with: { assignments: true },
-  });
-
   return {
     event: e,
     goingCount: await goingCount(e.id),
@@ -87,15 +70,6 @@ export async function getEventDetail(slug: string, userId: string) {
       response: (responseByMember.get(m.id) ?? null) as EventResponseChoice | null,
     })),
     reminderOn: Boolean(reminder),
-    volunteerRoles: roles.map((r) => ({
-      id: r.id,
-      title: r.title,
-      description: r.description,
-      requirement: r.requirement,
-      capacity: r.capacity,
-      assignedCount: r.assignments.length,
-      mine: r.assignments.some((a) => a.userId === userId),
-    })),
   };
 }
 
@@ -155,63 +129,4 @@ export async function setReminder(userId: string, eventId: string, on: boolean) 
       .delete(eventReminder)
       .where(and(eq(eventReminder.userId, userId), eq(eventReminder.eventId, eventId)));
   }
-}
-
-/* BR04 — volunteer for an activity. */
-export async function volunteerForRole(
-  user: CurrentUser,
-  input: { roleId: string; acknowledgeConflict: boolean },
-) {
-  return db.transaction(async (tx) => {
-    const [role] = await tx
-      .select()
-      .from(volunteerRole)
-      .where(eq(volunteerRole.id, input.roleId))
-      .for("update");
-    if (!role) return { ok: false as const, reason: "closed" as const };
-    const [e] = await tx.select().from(event).where(eq(event.id, role.eventId));
-
-    const assignments = await tx
-      .select()
-      .from(volunteerAssignment)
-      .where(eq(volunteerAssignment.roleId, role.id));
-
-    // A conflict is another commitment on the same calendar day.
-    const sameDay = await tx
-      .select({ id: volunteerRole.id })
-      .from(volunteerAssignment)
-      .innerJoin(volunteerRole, eq(volunteerAssignment.roleId, volunteerRole.id))
-      .innerJoin(event, eq(volunteerRole.eventId, event.id))
-      .where(
-        and(
-          eq(volunteerAssignment.userId, user.id),
-          sql`${event.startsAt}::date = ${e.startsAt.toISOString()}::date`,
-          sql`${volunteerRole.id} <> ${role.id}`,
-        ),
-      );
-
-    const decision = decideVolunteer({
-      eligible: canVolunteer(user.roles),
-      eventOpen: e.status !== "cancelled" && e.startsAt > new Date(),
-      assignedCount: assignments.length,
-      capacity: role.capacity,
-      alreadyAssigned: assignments.some((a) => a.userId === user.id),
-      hasConflict: sameDay.length > 0,
-      acknowledgedConflict: input.acknowledgeConflict,
-    });
-    if (!decision.ok) return decision;
-
-    await tx.insert(volunteerAssignment).values({
-      roleId: role.id,
-      userId: user.id,
-      acknowledgedConflict: input.acknowledgeConflict,
-    });
-    return decision;
-  });
-}
-
-export async function withdrawFromRole(userId: string, roleId: string) {
-  await db
-    .delete(volunteerAssignment)
-    .where(and(eq(volunteerAssignment.roleId, roleId), eq(volunteerAssignment.userId, userId)));
 }

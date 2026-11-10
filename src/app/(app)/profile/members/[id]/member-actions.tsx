@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useTransition, type ReactNode } from "react";
+import { useState, useTransition } from "react";
 import { Sheet } from "@/components/sheet";
 import { Button, Notice } from "@/components/ui";
 import { formatMoney } from "@/lib/format";
-import { payFeeAction, removeMemberAction, type FeeResult } from "../../actions";
+import { payFeeAction, type FeeResult } from "../../actions";
 
 type Method = { id: string; label: string; note: string };
 
@@ -92,45 +92,6 @@ export function PayFeeButton({
             <p className="text-xs text-muted">Demo payment. No money is taken.</p>
           </>
         )}
-      </Sheet>
-    </>
-  );
-}
-
-/* Figma "Sheet / edit". */
-export function EditMemberButton({ children }: { children: ReactNode }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <>
-      <Button onClick={() => setOpen(true)}>Edit member</Button>
-      <Sheet open={open} onClose={() => setOpen(false)} title="Edit member">
-        {children}
-      </Sheet>
-    </>
-  );
-}
-
-export function RemoveMemberButton({ memberId, name }: { memberId: string; name: string }) {
-  const [open, setOpen] = useState(false);
-  const [pending, startTransition] = useTransition();
-  return (
-    <>
-      <Button variant="ghost" onClick={() => setOpen(true)} className="text-red-700">
-        Remove from family
-      </Button>
-      <Sheet open={open} onClose={() => setOpen(false)} title="Remove member?">
-        <p>
-          {name} will be unlinked from your account, along with their event responses and membership record.
-        </p>
-        <Button
-          variant="primary"
-          disabled={pending}
-          onClick={() => startTransition(() => removeMemberAction(memberId))}
-          className="bg-red-700 hover:bg-red-800"
-        >
-          Remove {name}
-        </Button>
-        <Button onClick={() => setOpen(false)}>Keep</Button>
       </Sheet>
     </>
   );

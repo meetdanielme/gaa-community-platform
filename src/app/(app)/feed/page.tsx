@@ -5,15 +5,12 @@ import { clubConfig, codeLabel } from "@/club.config";
 import { PageBody, PageHeader } from "@/components/page-header";
 import { Tag, buttonClass } from "@/components/ui";
 import { formatRelative, formatToday } from "@/lib/format";
-import { requireUser } from "@/lib/session";
 import { listPosts } from "@/server/feed";
-import { LikeButton } from "./like-button";
 
 export const metadata: Metadata = { title: "Feed" };
 
 export default async function FeedPage() {
-  const user = await requireUser();
-  const posts = await listPosts(user.id);
+  const posts = await listPosts();
 
   return (
     <>
@@ -63,11 +60,7 @@ export default async function FeedPage() {
                     {p.ctaLabel}
                   </Link>
                 )}
-                <div className="mt-auto flex items-center gap-2 text-xs text-muted">
-                  <LikeButton postId={p.id} liked={p.likedByMe} count={p.likeCount} />
-                  <span aria-hidden>·</span>
-                  <span>{clubConfig.name} community</span>
-                </div>
+                <p className="mt-auto text-xs text-muted">{clubConfig.name} community</p>
               </article>
             ))}
           </div>

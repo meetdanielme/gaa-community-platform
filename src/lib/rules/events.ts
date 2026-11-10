@@ -1,5 +1,5 @@
 /**
- * BR03 Event response (D03) and BR04 Volunteer registration (D04).
+ * BR03 Event response (activity diagram D03).
  */
 
 export type EventResponseChoice = "going" | "not_going";
@@ -52,31 +52,3 @@ export const responseRejectionMessages: Record<
   deadline_passed: "The response deadline for this event has passed.",
   full: "This event is full. Your previous response has been kept.",
 };
-
-export type VolunteerDecision =
-  | { ok: true }
-  | { ok: false; reason: "not_eligible" | "closed" | "full" | "already_assigned" }
-  | { ok: false; reason: "conflict"; needsAcknowledgement: true };
-
-/**
- * IF role is open AND capacity remains AND requirements are met
- * AND (no commitment conflict OR user acknowledges the warning)
- * THEN assign the volunteer once
- */
-export function decideVolunteer(input: {
-  eligible: boolean;
-  eventOpen: boolean;
-  assignedCount: number;
-  capacity: number;
-  alreadyAssigned: boolean;
-  hasConflict: boolean;
-  acknowledgedConflict: boolean;
-}): VolunteerDecision {
-  if (!input.eligible) return { ok: false, reason: "not_eligible" };
-  if (!input.eventOpen) return { ok: false, reason: "closed" };
-  if (input.alreadyAssigned) return { ok: false, reason: "already_assigned" };
-  if (input.assignedCount >= input.capacity) return { ok: false, reason: "full" };
-  if (input.hasConflict && !input.acknowledgedConflict)
-    return { ok: false, reason: "conflict", needsAcknowledgement: true };
-  return { ok: true };
-}

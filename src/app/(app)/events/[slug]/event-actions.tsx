@@ -3,9 +3,9 @@
 import { useState, useTransition } from "react";
 import { CheckIcon } from "@/components/icons";
 import { Sheet } from "@/components/sheet";
-import { Button, Card, Notice } from "@/components/ui";
+import { Button, Notice } from "@/components/ui";
 import type { EventResponseChoice } from "@/lib/rules/events";
-import { respondAction, setReminderAction, volunteerAction, withdrawAction } from "../actions";
+import { respondAction, setReminderAction } from "../actions";
 
 type Attendee = {
   memberId: string;
@@ -117,88 +117,5 @@ export function ReminderToggle({ eventId, eventTitle, on }: { eventId: string; e
         </Button>
       </Sheet>
     </>
-  );
-}
-
-type Role = {
-  id: string;
-  title: string;
-  description: string;
-  requirement: string | null;
-  capacity: number;
-  assignedCount: number;
-  mine: boolean;
-};
-
-/* UC4 — Volunteer for an activity (BR04). */
-export function VolunteerRoles({ roles }: { roles: Role[] }) {
-  const [pending, startTransition] = useTransition();
-  const [conflictRole, setConflictRole] = useState<Role | null>(null);
-  const [message, setMessage] = useState<{ tone: "success" | "error"; text: string } | null>(null);
-
-  function signUp(role: Role, acknowledge = false) {
-    setMessage(null);
-    startTransition(async () => {
-      const result = await volunteerAction(role.id, acknowledge);
-      if (result.ok) {
-        setConflictRole(null);
-        setMessage({ tone: "success", text: `Thank you! You're down for ${role.title}.` });
-      } else if (result.needsAcknowledgement) {
-        setConflictRole(role);
-      } else {
-        setMessage({ tone: "error", text: result.error });
-      }
-    });
-  }
-
-  return (
-    <div>
-      <h3 className="mb-4 text-xl font-bold">Lend a hand</h3>
-      <div className="flex flex-col gap-3">
-        {roles.map((r) => {
-          const full = r.assignedCount >= r.capacity;
-          return (
-            <Card key={r.id} className="flex flex-col gap-2">
-              <div className="flex items-start justify-between gap-4">
-                <p className="font-semibold">{r.title}</p>
-                <p className="shrink-0 text-sm text-muted">
-                  {r.assignedCount}/{r.capacity} filled
-                </p>
-              </div>
-              <p className="text-sm text-muted">{r.description}</p>
-              {r.requirement && <p className="text-xs text-muted">Requires: {r.requirement}</p>}
-              {r.mine ? (
-                <Button
-                  disabled={pending}
-                  onClick={() => startTransition(async () => void (await withdrawAction(r.id)))}
-                  size="sm" className="mt-1"
-                >
-                  <CheckIcon className="size-4" /> You&apos;re signed up · Withdraw
-                </Button>
-              ) : (
-                <Button disabled={pending || full} onClick={() => signUp(r)} size="sm" className="mt-1">
-                  {full ? "Role full" : "Volunteer"}
-                </Button>
-              )}
-            </Card>
-          );
-        })}
-      </div>
-      {message && (
-        <div className="mt-3">
-          <Notice tone={message.tone}>{message.text}</Notice>
-        </div>
-      )}
-      <Sheet open={conflictRole !== null} onClose={() => setConflictRole(null)} title="Busy day?">
-        <p className="text-muted">
-          You&apos;re already volunteering at another event that day. You can still sign up for{" "}
-          <strong className="text-ink">{conflictRole?.title}</strong> if you can manage both.
-        </p>
-        <Button variant="primary" disabled={pending} onClick={() => conflictRole && signUp(conflictRole, true)}>
-          Sign me up anyway
-        </Button>
-        <Button onClick={() => setConflictRole(null)}>Cancel</Button>
-      </Sheet>
-    </div>
   );
 }

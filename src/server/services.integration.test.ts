@@ -45,7 +45,7 @@ beforeAll(async () => {
     phone: u.phone,
     eircode: u.eircode,
     helpsWith: u.helpsWith,
-    roles: ["family_supporter", "volunteer"],
+    roles: ["family_supporter"],
   };
 }, 60_000);
 
@@ -76,9 +76,9 @@ describe("fundraising (BR06, BR07, BR08)", () => {
     expect(after.candidates.find((c) => c.goal.id === kits.id)!.votes).toBe(61);
   });
 
-  it("rejects votes from volunteers who are not players or supporters", async () => {
+  it("rejects votes from people with no voting role", async () => {
     const o = await svc.fundraising.getFundraisingOverview(evan.id);
-    const d = await svc.fundraising.castVote({ ...evan, roles: ["volunteer"] }, o.candidates[0].goal.id);
+    const d = await svc.fundraising.castVote({ ...evan, roles: [] }, o.candidates[0].goal.id);
     expect(d).toMatchObject({ outcome: "rejected", reason: "not_eligible" });
   });
 
@@ -146,7 +146,7 @@ describe("fundraising (BR06, BR07, BR08)", () => {
   });
 });
 
-describe("events (BR03, BR04)", () => {
+describe("events (BR03)", () => {
   it("lets Evan respond for a linked member but not someone else's", async () => {
     const detail = await svc.events.getEventDetail("hurling-tournament", evan.id);
     const sandu = detail!.attendees.find((a) => a.member.fullName === "Sandu Alam")!;
@@ -176,21 +176,6 @@ describe("events (BR03, BR04)", () => {
     expect(r).toMatchObject({ ok: false, reason: "past" });
   });
 
-  it("warns about same-day volunteering conflicts", async () => {
-    const hurling = await svc.events.getEventDetail("hurling-tournament", evan.id);
-    const blitz = await svc.events.getEventDetail("football-u18-blitz", evan.id);
-    expect(await svc.events.volunteerForRole(evan, { roleId: hurling!.volunteerRoles[0].id, acknowledgeConflict: false })).toEqual({
-      ok: true,
-    });
-    const conflict = await svc.events.volunteerForRole(evan, {
-      roleId: blitz!.volunteerRoles[0].id,
-      acknowledgeConflict: false,
-    });
-    expect(conflict).toMatchObject({ ok: false, reason: "conflict" });
-    expect(
-      await svc.events.volunteerForRole(evan, { roleId: blitz!.volunteerRoles[0].id, acknowledgeConflict: true }),
-    ).toEqual({ ok: true });
-  });
 });
 
 describe("profile (BR01, BR05)", () => {
@@ -209,17 +194,6 @@ describe("profile (BR01, BR05)", () => {
     expect(again).toEqual({ ok: false, reason: "already_paid" });
   });
 
-  it("never changes the account holder's own profile relationship", async () => {
-    const self = (await svc.profile.getFamily(evan.id)).find((m) => m.relationship === "self")!;
-    const saved = await svc.profile.saveMember(evan.id, {
-      id: self.id,
-      fullName: "Someone Else",
-      relationship: "child",
-      code: "hurling",
-      team: "Adult",
-    });
-    expect(saved).toMatchObject({ relationship: "self", fullName: "Evan Alam", code: "hurling" });
-  });
 
   it("hides other families' members", async () => {
     const family = await svc.profile.getFamily(evan.id);

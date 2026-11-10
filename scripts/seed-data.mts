@@ -22,7 +22,7 @@ export const demoUser = {
   email: "evan@example.com",
   phone: "+353 123 45678",
   eircode: "T12 KV06",
-  roles: "family_supporter,volunteer",
+  roles: "family_supporter",
   helpsWith: "Carpooling · Event check-in · First aid",
   family: [
     { fullName: "Sandu Alam", relationship: "child", code: "football", team: "U18", fee: "unpaid" },
@@ -59,9 +59,9 @@ export const posts = [
     kind: "Behind the scenes",
     category: null,
     title: "The pitch crew deserve a medal.",
-    body: "Volunteers were out at first light getting the main pitch ready for the season. Want to help? There are roles at every upcoming event.",
+    body: "Volunteers were out at first light getting the main pitch ready for the season. See you on it at the next home game.",
     imageUrl: "/images/pitch.jpg",
-    ctaLabel: "Find a way to help",
+    ctaLabel: "See upcoming events",
     ctaHref: "/events",
     publishedAt: hoursAgo(5),
   },
@@ -111,10 +111,6 @@ export const events = [
     goodToKnow:
       "Bring a water bottle and weather-appropriate clothing. Families are welcome. Contact your coach with accessibility or transport questions.",
     capacity: 120,
-    roles: [
-      { title: "Carpool driver", description: "Drive players from the clubhouse to Devils Arena and back.", capacity: 6, requirement: "Full driving licence" },
-      { title: "Event check-in", description: "Welcome families and tick players off the team sheet.", capacity: 2, requirement: null },
-    ],
   },
   {
     slug: "culture-night",
@@ -134,10 +130,6 @@ export const events = [
     ],
     goodToKnow: "Free entry. The clubhouse is wheelchair accessible.",
     capacity: 200,
-    roles: [
-      { title: "Food stall helper", description: "Serve food and keep the stalls tidy.", capacity: 4, requirement: "Food safety briefing on the night" },
-      { title: "Set-up crew", description: "Arrange tables and decorations before doors open.", capacity: 5, requirement: null },
-    ],
   },
   {
     slug: "football-u18-blitz",
@@ -155,9 +147,6 @@ export const events = [
     ],
     goodToKnow: "Players should bring both home and away jerseys.",
     capacity: 40,
-    roles: [
-      { title: "First aid", description: "Be the on-site first aider for the afternoon.", capacity: 1, requirement: "Current first-aid certificate" },
-    ],
   },
   {
     slug: "ladies-football-training-night",
@@ -175,7 +164,6 @@ export const events = [
     ],
     goodToKnow: "Gumshields are provided for new players.",
     capacity: 30,
-    roles: [],
   },
   {
     slug: "ladies-friendly-5-aside",
@@ -191,7 +179,6 @@ export const events = [
     recap:
       "Our U18s brought energy, teamwork and plenty of smiles. Every player got game time and the sideline support was the loudest we've heard all season.",
     capacity: null,
-    roles: [],
   },
 ];
 

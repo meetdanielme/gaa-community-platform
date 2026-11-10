@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { clubConfig } from "@/club.config";
-import { PlusIcon } from "@/components/icons";
 import { PageBody, PageHeader } from "@/components/page-header";
 import { Card, LinkButton, Tag } from "@/components/ui";
 import { initials } from "@/lib/format";
@@ -45,10 +44,12 @@ export default async function ProfilePage() {
             <EditContactButton user={user} />
           </Card>
 
-          <Card className="flex flex-col gap-2">
-            <h2 className="text-xl font-bold">How you help</h2>
-            <p>{user.helpsWith ?? <span className="text-muted">Tell the club how you&apos;d like to help.</span>}</p>
-          </Card>
+          {user.helpsWith && (
+            <Card className="flex flex-col gap-2">
+              <h2 className="text-xl font-bold">How you help</h2>
+              <p>{user.helpsWith}</p>
+            </Card>
+          )}
         </section>
 
         <section className="flex flex-col gap-5">
@@ -65,9 +66,11 @@ export default async function ProfilePage() {
               <LinkButton href={`/profile/members/${m.id}`}>View member</LinkButton>
             </Card>
           ))}
-          <LinkButton href="/profile/members/new" variant="ghost" className="border-2 border-dashed border-pale">
-            <PlusIcon /> Add a family member
-          </LinkButton>
+          {linked.length === 0 && (
+            <p className="text-sm text-muted">
+              Linked family members appear here once the club adds them to your account.
+            </p>
+          )}
         </section>
       </PageBody>
     </>

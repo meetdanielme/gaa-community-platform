@@ -11,7 +11,6 @@ import { ROLES, roleLabels, serializeRoles, type Role } from "@/lib/rules/roles"
 const roleHints: Record<Role, string> = {
   player: "You play for one of the club's teams.",
   family_supporter: "You support family members and can pay fees and donate.",
-  volunteer: "You help out at events.",
 };
 
 export default function SignUpPage() {

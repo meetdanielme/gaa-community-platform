@@ -4,9 +4,9 @@ import { refresh } from "next/cache";
 import { z } from "zod";
 import { requireUser } from "@/lib/session";
 import { responseRejectionMessages } from "@/lib/rules/events";
-import { respondToEvent, setReminder, volunteerForRole, withdrawFromRole } from "@/server/events";
+import { respondToEvent, setReminder } from "@/server/events";
 
-export type ActionResult = { ok: true; message?: string } | { ok: false; error: string; needsAcknowledgement?: boolean };
+export type ActionResult = { ok: true } | { ok: false; error: string };
 
 const respondSchema = z.object({
   eventId: z.string().uuid(),
@@ -27,38 +27,6 @@ export async function respondAction(input: z.infer<typeof respondSchema>): Promi
 export async function setReminderAction(eventId: string, on: boolean): Promise<ActionResult> {
   const user = await requireUser();
   await setReminder(user.id, z.string().uuid().parse(eventId), on);
-  refresh();
-  return { ok: true };
-}
-
-const volunteerMessages = {
-  not_eligible: "Volunteering is open to volunteers and family supporters. You can add the volunteer role in your profile.",
-  closed: "This event is no longer taking volunteers.",
-  full: "This role is already full. Thank you for offering!",
-  already_assigned: "You're already signed up for this role.",
-  conflict: "You're already volunteering at another event that day.",
-} as const;
-
-export async function volunteerAction(roleId: string, acknowledgeConflict: boolean): Promise<ActionResult> {
-  const user = await requireUser();
-  const decision = await volunteerForRole(user, {
-    roleId: z.string().uuid().parse(roleId),
-    acknowledgeConflict,
-  });
-  if (!decision.ok) {
-    return {
-      ok: false,
-      error: volunteerMessages[decision.reason],
-      needsAcknowledgement: decision.reason === "conflict",
-    };
-  }
-  refresh();
-  return { ok: true };
-}
-
-export async function withdrawAction(roleId: string): Promise<ActionResult> {
-  const user = await requireUser();
-  await withdrawFromRole(user.id, z.string().uuid().parse(roleId));
   refresh();
   return { ok: true };
 }

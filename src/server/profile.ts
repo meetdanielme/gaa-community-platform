@@ -1,4 +1,4 @@
-import { and, asc, eq, ne, sql } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { member, membershipFee, user as userTable } from "@/db/schema";
 import { clubConfig } from "@/club.config";
@@ -10,6 +10,10 @@ import { payments, receiptNumber } from "./payments";
 export type Member = typeof member.$inferSelect;
 export type MembershipFee = typeof membershipFee.$inferSelect;
 
+/**
+ * Linked family members come from club records; teams and memberships are
+ * updated by the club, not in the app.
+ */
 export async function getFamily(userId: string) {
   const members = await db.query.member.findMany({
     where: eq(member.managedByUserId, userId),
@@ -22,7 +26,7 @@ export async function getFamily(userId: string) {
   }));
 }
 
-/** BR01: only the managing account may view or change a member profile. */
+/** BR01: only the managing account may view a member profile. */
 export async function getManagedMember(userId: string, memberId: string) {
   const m = await db.query.member.findFirst({
     where: and(eq(member.id, memberId), eq(member.managedByUserId, userId)),
@@ -34,7 +38,7 @@ export async function getManagedMember(userId: string, memberId: string) {
 
 export async function updateContactDetails(
   userId: string,
-  input: { name: string; phone: string | null; eircode: string | null; helpsWith: string | null },
+  input: { name: string; phone: string | null; eircode: string | null },
 ) {
   await db.transaction(async (tx) => {
     await tx.update(userTable).set(input).where(eq(userTable.id, userId));
@@ -44,65 +48,6 @@ export async function updateContactDetails(
       .set({ fullName: input.name })
       .where(and(eq(member.managedByUserId, userId), eq(member.relationship, "self")));
   });
-}
-
-export async function saveMember(
-  userId: string,
-  input: {
-    id?: string;
-    fullName: string;
-    relationship: string;
-    code: string | null;
-    team: string | null;
-  },
-) {
-  // The "self" profile is tied to the account: its name comes from the
-  // contact details and its relationship can never change.
-  const relationship = input.relationship === "self" ? "other" : input.relationship;
-  if (input.id) {
-    const updated = await db
-      .update(member)
-      .set({
-        fullName: sql`case when ${member.relationship} = 'self' then ${member.fullName} else ${input.fullName} end`,
-        relationship: sql`case when ${member.relationship} = 'self' then 'self' else ${relationship} end`,
-        code: input.code,
-        team: input.team,
-      })
-      .where(and(eq(member.id, input.id), eq(member.managedByUserId, userId)))
-      .returning();
-    return updated[0] ?? null;
-  }
-  return db.transaction(async (tx) => {
-    const [created] = await tx
-      .insert(member)
-      .values({
-        managedByUserId: userId,
-        fullName: input.fullName,
-        relationship,
-        code: input.code,
-        team: input.team,
-      })
-      .returning();
-    await tx.insert(membershipFee).values({
-      memberId: created.id,
-      season: clubConfig.season,
-      amountCents: clubConfig.membershipFeeCents,
-    });
-    return created;
-  });
-}
-
-export async function removeMember(userId: string, memberId: string) {
-  // The account holder's own profile cannot be removed.
-  await db
-    .delete(member)
-    .where(
-      and(
-        eq(member.id, memberId),
-        eq(member.managedByUserId, userId),
-        ne(member.relationship, "self"),
-      ),
-    );
 }
 
 /* BR05 — pay a membership fee. */

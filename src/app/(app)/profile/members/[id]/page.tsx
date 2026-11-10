@@ -9,8 +9,7 @@ import { canPay } from "@/lib/rules/roles";
 import { requireUser } from "@/lib/session";
 import { getManagedMember } from "@/server/profile";
 import { demoPaymentMethods } from "@/server/payments";
-import { MemberForm } from "../../member-form";
-import { EditMemberButton, PayFeeButton, RemoveMemberButton } from "./member-actions";
+import { PayFeeButton } from "./member-actions";
 
 export const metadata: Metadata = { title: "Member details" };
 
@@ -61,18 +60,12 @@ export default async function MemberPage({ params }: PageProps<"/profile/members
           <h3 className="text-xl font-bold">A family, connected</h3>
           <p className="mt-3 max-w-md">
             {isSelf
-              ? "This is your own member profile. Update your name and contact details from your profile."
+              ? "This is your own member profile. Contact the club to update team or membership records."
               : `${firstName} manages this linked member profile. Contact the club to update team or membership records.`}
           </p>
         </div>
 
-        <div className="flex flex-col gap-3">
-          <LinkButton href={m.code ? `/events?code=${m.code}` : "/events"}>View club events</LinkButton>
-          <EditMemberButton>
-            <MemberForm member={m} />
-          </EditMemberButton>
-          {!isSelf && <RemoveMemberButton memberId={m.id} name={m.fullName} />}
-        </div>
+        <LinkButton href={m.code ? `/events?code=${m.code}` : "/events"}>View club events</LinkButton>
       </PageBody>
     </>
   );

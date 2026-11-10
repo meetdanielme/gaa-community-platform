@@ -37,9 +37,9 @@ export const user = pgTable("user", {
   // Profile fields (Better Auth `additionalFields`)
   phone: text("phone"),
   eircode: text("eircode"),
-  /** Comma-separated actor roles: player, family_supporter, volunteer */
+  /** Comma-separated actor roles: player, family_supporter */
   roles: text("roles").notNull().default("family_supporter"),
-  /** Ways this person helps the club, e.g. "Carpooling · First aid" */
+  /** How this person helps the club, e.g. "Carpooling · First aid" (club records) */
   helpsWith: text("helps_with"),
 });
 
@@ -150,22 +150,8 @@ export const post = pgTable("post", {
   publishedAt: timestamp("published_at").notNull().defaultNow(),
 });
 
-export const postLike = pgTable(
-  "post_like",
-  {
-    postId: text("post_id")
-      .notNull()
-      .references(() => post.id, { onDelete: "cascade" }),
-    userId: text("user_id")
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
-    createdAt: createdAt(),
-  },
-  (t) => [primaryKey({ columns: [t.postId, t.userId] })],
-);
-
 /* -------------------------------------------------------------------------- */
-/* Events (UC2 View events, UC3 Respond, UC4 Volunteer)                       */
+/* Events (UC2 View events, UC3 Respond to event invitations)                */
 /* -------------------------------------------------------------------------- */
 
 export type ScheduleItem = { time: string; label: string };
@@ -223,35 +209,6 @@ export const eventReminder = pgTable(
     createdAt: createdAt(),
   },
   (t) => [primaryKey({ columns: [t.eventId, t.userId] })],
-);
-
-export const volunteerRole = pgTable("volunteer_role", {
-  id: id(),
-  eventId: text("event_id")
-    .notNull()
-    .references(() => event.id, { onDelete: "cascade" }),
-  title: text("title").notNull(),
-  description: text("description").notNull(),
-  capacity: integer("capacity").notNull(),
-  /** Free-text requirement shown before sign-up, e.g. "Garda vetting" */
-  requirement: text("requirement"),
-});
-
-export const volunteerAssignment = pgTable(
-  "volunteer_assignment",
-  {
-    roleId: text("role_id")
-      .notNull()
-      .references(() => volunteerRole.id, { onDelete: "cascade" }),
-    userId: text("user_id")
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
-    acknowledgedConflict: boolean("acknowledged_conflict")
-      .notNull()
-      .default(false),
-    createdAt: createdAt(),
-  },
-  (t) => [primaryKey({ columns: [t.roleId, t.userId] })],
 );
 
 /* -------------------------------------------------------------------------- */
@@ -371,7 +328,6 @@ export const membershipFeeRelations = relations(membershipFee, ({ one }) => ({
 
 export const eventRelations = relations(event, ({ many }) => ({
   responses: many(eventResponse),
-  volunteerRoles: many(volunteerRole),
 }));
 
 export const eventResponseRelations = relations(eventResponse, ({ one }) => ({
@@ -381,24 +337,3 @@ export const eventResponseRelations = relations(eventResponse, ({ one }) => ({
     references: [member.id],
   }),
 }));
-
-export const volunteerRoleRelations = relations(
-  volunteerRole,
-  ({ one, many }) => ({
-    event: one(event, {
-      fields: [volunteerRole.eventId],
-      references: [event.id],
-    }),
-    assignments: many(volunteerAssignment),
-  }),
-);
-
-export const volunteerAssignmentRelations = relations(
-  volunteerAssignment,
-  ({ one }) => ({
-    role: one(volunteerRole, {
-      fields: [volunteerAssignment.roleId],
-      references: [volunteerRole.id],
-    }),
-  }),
-);
