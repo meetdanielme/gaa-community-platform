@@ -42,7 +42,7 @@ export default async function AdminDashboard() {
         <Stat
           label="Membership outstanding"
           value={formatMoney(d.fees.outstanding.cents)}
-          sub={`${d.fees.outstanding.n} members`}
+          sub={`${d.fees.outstanding.n} ${d.fees.outstanding.n === 1 ? "membership" : "memberships"}`}
         />
         <Stat label="Donations" value={formatMoney(d.donations.cents)} sub={`${d.donations.n} confirmed donations`} />
       </div>

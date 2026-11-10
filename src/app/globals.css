@@ -20,9 +20,9 @@
  * Brand colours are injected per club from src/club.config.ts as
  * --brand-* custom properties on <html>; these are fallbacks.
  *
- * Each token is light-dark(light value, dark value). Dark values are derived
- * from the brand colours where they can be, so another club's palette still
- * works in dark mode.
+ * Dark values are derived from the brand colours where they can be, so
+ * another club's palette still works in dark mode. (Not light-dark(): its
+ * build-time fallback breaks every colour in Safari.)
  */
 :root {
   --brand-primary: #003660;
@@ -33,27 +33,36 @@
   --brand-pale: #e8eff3;
   --brand-paper: #f4f6f8;
 
-  color-scheme: light dark;
-  /* Page background, and cards/sheets on top of it */
-  --paper: light-dark(var(--brand-paper), #0b131a);
-  --surface: light-dark(#ffffff, #15212c);
-  /* Body text and secondary text */
-  --ink: light-dark(var(--brand-ink), #e6ecf1);
-  --muted: light-dark(var(--brand-muted), #9badbb);
-  /* Brand-coloured text, icons and outlines: lightened in dark mode to stay readable */
-  --navy: light-dark(var(--brand-primary), color-mix(in oklab, var(--brand-primary) 25%, #dcebfa));
-  /* Filled brand surfaces with white text (primary buttons, date chips) */
-  --brand-fill: light-dark(var(--brand-primary), color-mix(in oklab, var(--brand-primary) 75%, #4f8fcf));
-  --pale: light-dark(var(--brand-pale), #1f3040);
-  --pale-hover: light-dark(#dbe6ec, #29405a);
-  --nav-active: light-dark(#e1edf6, #1d3a55);
-  --line: light-dark(#d5dee5, #2f4252);
-}
-:root[data-theme="light"] {
   color-scheme: light;
-}
-:root[data-theme="dark"] {
-  color-scheme: dark;
+  /* Page background, and cards/sheets on top of it */
+  --paper: var(--brand-paper);
+  --surface: #ffffff;
+  /* Body text and secondary text */
+  --ink: var(--brand-ink);
+  --muted: var(--brand-muted);
+  /* Brand-coloured text, icons and outlines */
+  --navy: var(--brand-primary);
+  /* Filled brand surfaces with white text (primary buttons, date chips) */
+  --brand-fill: var(--brand-primary);
+  --pale: var(--brand-pale);
+  --pale-hover: #dbe6ec;
+  --nav-active: #e1edf6;
+  --line: #d5dee5;
+
+  @variant dark {
+    color-scheme: dark;
+    --paper: #0b131a;
+    --surface: #15212c;
+    --ink: #e6ecf1;
+    --muted: #9badbb;
+    /* Lightened so brand-coloured text stays readable on dark surfaces */
+    --navy: color-mix(in oklab, var(--brand-primary) 25%, #dcebfa);
+    --brand-fill: color-mix(in oklab, var(--brand-primary) 75%, #4f8fcf);
+    --pale: #1f3040;
+    --pale-hover: #29405a;
+    --nav-active: #1d3a55;
+    --line: #2f4252;
+  }
 }
 
 @theme inline {
@@ -83,8 +92,13 @@ body {
  * mode the tint becomes a translucent wash of the colour, with lighter text.
  */
 .tinted {
-  color: light-dark(var(--fg), color-mix(in oklab, var(--fg) 35%, white));
-  background-color: light-dark(var(--bg), color-mix(in oklab, var(--fg) 30%, transparent));
+  color: var(--fg);
+  background-color: var(--bg);
+
+  @variant dark {
+    color: color-mix(in oklab, var(--fg) 35%, white);
+    background-color: color-mix(in oklab, var(--fg) 30%, transparent);
+  }
 }
 
 /* Native <dialog> used for sheets. */
