@@ -141,7 +141,7 @@ Designed and built by IS2204 Group 16, University College Cork (2026):
 | Team member | LinkedIn | GitHub |
 | --- | --- | --- |
 | Evan Alam | [Evan Alam](https://ie.linkedin.com/in/evan-alam-565b33384) | — |
-| Idayat Majolagbe | — | — |
+| Idayat Majolagbe | [Idayat Majolagbe](https://www.linkedin.com/in/idayat-majolagbe-9935a7354/) | — |
 | Daniel Marcinkowski | [Daniel Marcinkowski](https://ie.linkedin.com/in/meetdanielme) | [@meetdanielme](https://github.com/meetdanielme) |
 | Chloe Mitellus | [Chloé Mitellus](https://ie.linkedin.com/in/chlo%C3%A9-mitellus-504072386) | — |
 | Emma Ntumobe | [Emmanuella Ntumobe](https://ie.linkedin.com/in/emmanuella-ntumobe-52b797384) | — |
