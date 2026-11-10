@@ -6,7 +6,7 @@ import { clubConfig } from "@/club.config";
 import { HeartIcon } from "@/components/icons";
 import { Sheet } from "@/components/sheet";
 import { Button, Notice, buttonClass } from "@/components/ui";
-import { formatMoney } from "@/lib/format";
+import { formatMoney, parseEuros } from "@/lib/format";
 import { donateAction, type DonationActionResult } from "./actions";
 
 type Method = { id: string; label: string; note: string };
@@ -42,9 +42,13 @@ export function DonateFlow({
   function continueToReview() {
     let cents = amountCents;
     if (custom.trim()) {
-      const euros = Number(custom.replace(",", "."));
-      cents = Math.round(euros * 100);
-      if (!Number.isFinite(euros) || cents < 100) {
+      const parsed = parseEuros(custom);
+      if (parsed === null) {
+        setStep({ kind: "amount", error: "Enter an amount like 15 or 12.50." });
+        return;
+      }
+      cents = parsed;
+      if (cents < 100) {
         setStep({ kind: "amount", error: "Please enter an amount of at least €1." });
         return;
       }
@@ -65,7 +69,7 @@ export function DonateFlow({
     });
   }
 
-  const effectiveAmount = custom.trim() ? Math.round(Number(custom.replace(",", ".")) * 100) || 0 : amountCents;
+  const effectiveAmount = custom.trim() ? (parseEuros(custom) ?? 0) : amountCents;
 
   return (
     <>
@@ -105,7 +109,8 @@ export function DonateFlow({
               inputMode="decimal"
               value={custom}
               onChange={(e) => setCustom(e.target.value.replace(/[^\d.,]/g, ""))}
-              placeholder="e.g. 15"
+              placeholder="e.g. 15 or 12.50"
+              aria-invalid={custom.trim() !== "" && parseEuros(custom) === null}
               className="h-full w-full bg-transparent px-2 font-semibold text-navy outline-none placeholder:font-normal placeholder:text-muted"
             />
           </span>
@@ -114,8 +119,8 @@ export function DonateFlow({
           <HeartIcon className="size-5 text-navy" /> {method.label}
         </p>
         {step.kind === "amount" && step.error && <Notice tone="error">{step.error}</Notice>}
-        <Button variant="primary" onClick={continueToReview} disabled={effectiveAmount <= 0}>
-          Continue with {formatMoney(effectiveAmount)}
+        <Button variant="primary" onClick={continueToReview} disabled={!custom.trim() && effectiveAmount <= 0}>
+          {effectiveAmount > 0 ? `Continue with ${formatMoney(effectiveAmount)}` : "Continue"}
         </Button>
         <p className="text-xs text-muted">Demo payment. No money is taken.</p>
       </Sheet>

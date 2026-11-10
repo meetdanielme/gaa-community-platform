@@ -115,3 +115,27 @@ export const ReceiptIcon = (p: IconProps) => (
     <path d="M9 8h6M9 11.5h6M9 15h3.5" />
   </Icon>
 );
+export const MegaphoneIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M4 10v4a1 1 0 0 0 1 1h2.5l7 4V5l-7 4H5a1 1 0 0 0-1 1Z" />
+    <path d="M7.5 15l1.2 4.5M18 9.5a3.5 3.5 0 0 1 0 5" />
+  </Icon>
+);
+export const TrophyIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M7.5 4h9v5a4.5 4.5 0 0 1-9 0Z" />
+    <path d="M7.5 6H4.5a3 3 0 0 0 3 4M16.5 6h3a3 3 0 0 1-3 4M12 13.5V17M8.5 20.5h7M9.5 20.5c0-2 1-3.5 2.5-3.5s2.5 1.5 2.5 3.5" />
+  </Icon>
+);
+export const WhistleIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <circle cx="9" cy="14" r="5" />
+    <path d="M12.5 10.5 20.5 7v4.5h-6M9 14h.01M5.5 5.5l1.5 2M10 3.5v2.5" strokeWidth={1.75} />
+  </Icon>
+);
+export const CameraIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M3.5 8.5a2 2 0 0 1 2-2h2l1.5-2h6l1.5 2h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2Z" />
+    <circle cx="12" cy="13" r="3.5" />
+  </Icon>
+);

@@ -23,6 +23,35 @@ export async function listEvents(category?: string) {
   return { upcoming, past };
 }
 
+/**
+ * "Your upcoming events": events this account said it's going to, for any
+ * member it manages, soonest first, with who is going.
+ */
+export async function listMyUpcomingEvents(userId: string) {
+  const rows = await db
+    .select({ event, memberName: member.fullName, relationship: member.relationship })
+    .from(eventResponse)
+    .innerJoin(event, eq(eventResponse.eventId, event.id))
+    .innerJoin(member, eq(eventResponse.memberId, member.id))
+    .where(
+      and(
+        eq(member.managedByUserId, userId),
+        eq(eventResponse.response, "going"),
+        gte(event.startsAt, new Date()),
+        eq(event.status, "scheduled"),
+      ),
+    )
+    .orderBy(asc(event.startsAt), asc(member.createdAt));
+
+  const byEvent = new Map<string, { event: ClubEvent; going: string[] }>();
+  for (const r of rows) {
+    const entry = byEvent.get(r.event.id) ?? { event: r.event, going: [] };
+    entry.going.push(r.relationship === "self" ? "You" : r.memberName.split(" ")[0]);
+    byEvent.set(r.event.id, entry);
+  }
+  return [...byEvent.values()];
+}
+
 async function goingCount(eventId: string) {
   const [row] = await db
     .select({ n: sql<number>`count(*)::int` })

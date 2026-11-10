@@ -10,7 +10,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
       <Link href="/" aria-label="Home" className="mb-10">
         <Logo width={220} priority />
       </Link>
-      <main className="w-full max-w-md rounded-card bg-white p-6 sm:p-8">{children}</main>
+      <main className="w-full max-w-md rounded-card bg-surface p-6 sm:p-8">{children}</main>
     </div>
   );
 }

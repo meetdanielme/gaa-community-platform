@@ -5,26 +5,28 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { fieldErrors, formFields, type FormState } from "@/lib/form-state";
 import { requireAdmin } from "@/lib/session";
-import { optional } from "@/lib/validation";
+import { optional, text } from "@/lib/validation";
+import { limits } from "@/lib/limits";
+import { parseEuros } from "@/lib/format";
 import { activateGoal, recordOfflineFunds, saveGoal, setGoalWithdrawn } from "@/server/admin/fundraising";
 
-/** "1,250.50" → 125050 cents */
+/** "1,250.50" or "12,50" → cents */
 const euros = (message: string) =>
   z.string().transform((v, ctx) => {
-    const n = Number(v.replace(/[€,\s]/g, ""));
-    if (!Number.isFinite(n) || n <= 0 || n > 10_000_000) {
+    const cents = parseEuros(v);
+    if (cents === null || cents <= 0 || cents > 1_000_000_000) {
       ctx.addIssue({ code: "custom", message });
       return 0;
     }
-    return Math.round(n * 100);
+    return cents;
   });
 
 const goalSchema = z.object({
   id: z.string().uuid().optional(),
-  title: z.string().trim().min(3, "Name the goal").max(80),
-  purpose: z.string().trim().min(10, "One sentence on what it's for").max(160),
-  headline: optional(100),
-  description: optional(3000),
+  title: text(limits.goal.title, "Name the goal"),
+  purpose: optional(limits.goal.purpose[1]),
+  headline: optional(limits.goal.headline[1]),
+  description: optional(limits.goal.description[1]),
   targetCents: euros("Enter the amount to raise, e.g. 4000"),
 });
 
@@ -38,8 +40,8 @@ export async function saveGoalAction(_: FormState, formData: FormData): Promise<
   const breakdown = [];
   for (const [i, label] of labels.entries()) {
     if (!label.trim() && !amounts[i]?.trim()) continue;
-    const cents = Math.round(Number((amounts[i] ?? "").replace(/[€,\s]/g, "")) * 100);
-    if (!label.trim() || !Number.isFinite(cents) || cents <= 0) {
+    const cents = parseEuros(amounts[i] ?? "");
+    if (!label.trim() || cents === null || cents <= 0) {
       return { ok: false, errors: { breakdown: "Each cost line needs a description and an amount." } };
     }
     breakdown.push({ label: label.trim(), amountCents: cents });

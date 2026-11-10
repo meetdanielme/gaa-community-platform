@@ -1,15 +1,17 @@
 import Link from "next/link";
-import type { ComponentProps, ReactNode } from "react";
-import { codeColours, codeLabel } from "@/club.config";
+import type { ComponentProps, CSSProperties, ReactNode } from "react";
+import { codeColours, codeLabel, postKindStyle, type PostKindIcon } from "@/club.config";
+import { CameraIcon, HeartIcon, MegaphoneIcon, TrophyIcon, WhistleIcon } from "./icons";
 
 /* Buttons — Figma "Saints Hi-fi / Button / primary | secondary | gold" */
 
 type Variant = "primary" | "secondary" | "gold" | "ghost";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-navy text-white hover:bg-navy/90",
-  secondary: "bg-pale text-navy hover:bg-[#dbe6ec]",
-  gold: "bg-gold text-navy hover:brightness-95",
+  primary: "bg-brand text-white hover:bg-brand/90",
+  secondary: "bg-pale text-navy hover:bg-pale-hover",
+  // Navy on yellow in every theme (the lightened dark-mode navy is unreadable on gold).
+  gold: "bg-gold text-[var(--brand-primary)] hover:brightness-95",
   ghost: "text-navy hover:bg-pale",
 };
 
@@ -52,13 +54,13 @@ export function LinkButton({
 /* Surfaces */
 
 export function Card({ className = "", ...props }: ComponentProps<"div">) {
-  return <div className={`rounded-card bg-white p-5 ${className}`} {...props} />;
+  return <div className={`rounded-card bg-surface p-5 ${className}`} {...props} />;
 }
 
 export function Tag({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
     <span
-      className={`inline-flex items-center rounded-lg bg-navy px-2.5 py-1.5 text-xs font-semibold tracking-wide text-white uppercase ${className}`}
+      className={`inline-flex items-center rounded-lg bg-brand px-2.5 py-1.5 text-xs font-semibold tracking-wide text-white uppercase ${className}`}
     >
       {children}
     </span>
@@ -70,20 +72,38 @@ export function CodeTag({ code, className = "" }: { code: string | null | undefi
   const { colour, tint } = codeColours(code);
   return (
     <span
-      className={`inline-flex w-fit items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${className}`}
-      style={{ color: colour, backgroundColor: tint }}
+      className={`tinted inline-flex w-fit items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${className}`}
+      style={{ "--fg": colour, "--bg": tint } as CSSProperties}
     >
-      <span aria-hidden className="size-1.5 rounded-full" style={{ backgroundColor: colour }} />
+      <span aria-hidden className="size-1.5 rounded-full bg-current" />
       {codeLabel(code)}
     </span>
   );
 }
 
-/** What kind of content something is ("Club update", "Match report"): an outlined label. */
-export function KindLabel({ children }: { children: ReactNode }) {
+const kindIcons: Record<PostKindIcon, (p: { className?: string }) => ReactNode> = {
+  megaphone: MegaphoneIcon,
+  trophy: TrophyIcon,
+  whistle: WhistleIcon,
+  heart: HeartIcon,
+  camera: CameraIcon,
+};
+
+/**
+ * What kind of post something is ("Club update", "Match report"): an icon
+ * and colour per type (see postKinds in club.config), so types are easy to
+ * tell apart at a glance.
+ */
+export function KindLabel({ kind, className = "" }: { kind: string; className?: string }) {
+  const { icon, colour, tint } = postKindStyle(kind);
+  const Icon = kindIcons[icon];
   return (
-    <span className="inline-flex w-fit items-center rounded-md border border-[#d5dee5] px-2 py-0.5 text-xs font-medium text-muted">
-      {children}
+    <span
+      className={`tinted inline-flex w-fit items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold tracking-wide uppercase ${className}`}
+      style={{ "--fg": colour, "--bg": tint } as CSSProperties}
+    >
+      <Icon className="size-4" />
+      {kind}
     </span>
   );
 }
@@ -106,11 +126,11 @@ export function ProgressBar({ value, max }: { value: number; max: number }) {
 
 export function DetailRows({ rows }: { rows: { label: string; value: ReactNode }[] }) {
   return (
-    <dl className="grid grid-cols-[1fr_auto] gap-x-6 gap-y-3 text-sm">
+    <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-6 gap-y-3 text-sm">
       {rows.map((r) => (
         <div key={r.label} className="contents">
           <dt className="text-muted">{r.label}</dt>
-          <dd className="text-right font-semibold text-ink">{r.value}</dd>
+          <dd className="min-w-0 text-right font-semibold break-words text-ink">{r.value}</dd>
         </div>
       ))}
     </dl>
@@ -126,8 +146,8 @@ export function Notice({
 }) {
   const tones = {
     info: "bg-pale text-navy",
-    error: "bg-red-50 text-red-800",
-    success: "bg-emerald-50 text-emerald-800",
+    error: "bg-red-50 text-red-800 dark:bg-red-950/60 dark:text-red-200",
+    success: "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-200",
   };
   return (
     <p role={tone === "error" ? "alert" : "status"} className={`rounded-xl px-4 py-3 text-sm ${tones[tone]}`}>

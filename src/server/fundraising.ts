@@ -2,7 +2,7 @@ import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { db, type Database } from "@/db";
 import { donation, goal, vote, votingRound } from "@/db/schema";
 import { clubConfig } from "@/club.config";
-import { decideVote, type VoteDecision } from "@/lib/rules/voting";
+import { decideClearVote, decideVote, type VoteDecision } from "@/lib/rules/voting";
 import { decideProgression, type ProgressionDecision } from "@/lib/rules/progression";
 import { validateDonation, type PaymentResult } from "@/lib/rules/payments";
 import { canPay, canVote } from "@/lib/rules/roles";
@@ -137,6 +137,28 @@ export async function castVote(user: CurrentUser, goalId: string): Promise<VoteD
         .update(vote)
         .set({ goalId })
         .where(and(eq(vote.roundId, round!.id), eq(vote.userId, user.id)));
+    }
+    return decision;
+  });
+}
+
+/** BR07 — withdraw your vote without choosing another goal. */
+export async function clearVote(user: CurrentUser) {
+  return db.transaction(async (tx) => {
+    const round = await getOpenRound(tx);
+    const [current] = round
+      ? await tx
+          .select()
+          .from(vote)
+          .where(and(eq(vote.roundId, round.id), eq(vote.userId, user.id)))
+      : [];
+    const decision = decideClearVote({
+      voterEligible: canVote(user.roles),
+      roundOpen: Boolean(round),
+      hasChoice: Boolean(current),
+    });
+    if (decision.outcome === "cleared") {
+      await tx.delete(vote).where(and(eq(vote.roundId, round!.id), eq(vote.userId, user.id)));
     }
     return decision;
   });

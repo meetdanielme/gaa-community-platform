@@ -7,7 +7,8 @@ import { eventCategories } from "@/club.config";
 import { parseClubLocal } from "@/lib/datetime";
 import { fieldErrors, formFields, type FormState } from "@/lib/form-state";
 import { requireAdmin } from "@/lib/session";
-import { optional } from "@/lib/validation";
+import { optional, text } from "@/lib/validation";
+import { limits } from "@/lib/limits";
 import { deleteEvent, saveEvent, setEventCancelled } from "@/server/admin/content";
 
 const clubLocal = (message: string) =>
@@ -19,15 +20,15 @@ const clubLocal = (message: string) =>
 
 const eventSchema = z.object({
   id: z.string().uuid().optional(),
-  title: z.string().trim().min(3, "Give the event a name").max(100),
+  title: text(limits.event.title, "Give the event a name"),
   category: z.string().refine((v) => v in eventCategories, "Choose a code or category"),
   startsAt: clubLocal("Choose a date and start time"),
-  venue: z.string().trim().min(2, "Where is it?").max(100),
+  venue: text(limits.event.venue, "Where is it?"),
   imageUrl: optional(500).refine((v) => v === null || v.startsWith("/images/") || /^https:\/\/\S+$/.test(v), "Use a club photo or an https:// link"),
-  headline: z.string().trim().min(3, "Add a one-line summary").max(140),
-  description: z.string().trim().min(10, "Describe the event").max(3000),
-  goodToKnow: optional(1000),
-  recap: optional(2000),
+  headline: text(limits.event.headline, "Add a one-line summary"),
+  description: optional(limits.event.description[1]),
+  goodToKnow: optional(limits.event.goodToKnow[1]),
+  recap: optional(limits.event.recap[1]),
   capacity: z
     .string()
     .trim()
@@ -60,7 +61,7 @@ export async function saveEventAction(_: FormState, formData: FormData): Promise
   const times = formData.getAll("scheduleTime").map(String);
   const labels = formData.getAll("scheduleLabel").map(String);
   const schedule = times
-    .map((time, i) => ({ time: time.trim(), label: (labels[i] ?? "").trim() }))
+    .map((time, i) => ({ time: time.trim(), label: (labels[i] ?? "").trim().slice(0, limits.event.scheduleLabel[1]) }))
     .filter((r) => r.time && r.label)
     .slice(0, 20);
 

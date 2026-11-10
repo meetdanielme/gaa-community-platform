@@ -13,6 +13,7 @@ export function ConfirmButton({
   title,
   children,
   confirmLabel,
+  cancelLabel = "Cancel",
   action,
   destructive = true,
   variant = "ghost",
@@ -22,6 +23,7 @@ export function ConfirmButton({
   title: string;
   children: ReactNode;
   confirmLabel: string;
+  cancelLabel?: string;
   action: () => Promise<unknown>;
   destructive?: boolean;
   variant?: "primary" | "secondary" | "ghost";
@@ -35,12 +37,12 @@ export function ConfirmButton({
         variant={variant}
         size={size}
         onClick={() => setOpen(true)}
-        className={destructive && variant === "ghost" ? "text-red-700" : ""}
+        className={destructive && variant === "ghost" ? "text-red-700 dark:text-red-300" : ""}
       >
         {label}
       </Button>
       <Sheet open={open} onClose={() => setOpen(false)} title={title}>
-        <div className="text-ink">{children}</div>
+        <div className="flex flex-col gap-3 text-ink">{children}</div>
         <Button
           variant="primary"
           disabled={pending}
@@ -54,7 +56,7 @@ export function ConfirmButton({
         >
           {pending ? "Working…" : confirmLabel}
         </Button>
-        <Button onClick={() => setOpen(false)}>Cancel</Button>
+        <Button onClick={() => setOpen(false)}>{cancelLabel}</Button>
       </Sheet>
     </>
   );

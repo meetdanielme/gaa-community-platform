@@ -4,7 +4,9 @@ import { useFormAction } from "@/lib/use-form-action";
 import { useState } from "react";
 import { codes } from "@/club.config";
 import { ImageField } from "@/components/admin/image-field";
-import { Field, Input, Select, textareaClass } from "@/components/form";
+import { Field, Input, Select } from "@/components/form";
+import { Textarea } from "@/components/textarea";
+import { limits } from "@/lib/limits";
 import { CloseIcon, PlusIcon } from "@/components/icons";
 import { Button, Card, Notice } from "@/components/ui";
 import { saveEventAction } from "./actions";
@@ -17,7 +19,7 @@ type EventValues = {
   venue: string;
   imageUrl: string | null;
   headline: string;
-  description: string;
+  description: string | null;
   schedule: { time: string; label: string }[];
   goodToKnow: string | null;
   recap: string | null;
@@ -34,24 +36,24 @@ export function EventForm({ event }: { event?: EventValues }) {
   const [nextKey, setNextKey] = useState(rows.length);
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+    <form onSubmit={onSubmit} className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
       {event && <input type="hidden" name="id" value={event.id} />}
-      <div className="flex flex-col gap-6">
+      <div className="flex min-w-0 flex-col gap-6">
         <Card className="flex flex-col gap-4">
-          <Field label="Event name" error={err.title}>
-            <Input name="title" defaultValue={event?.title} required maxLength={100} />
+          <Field label="Event name" error={err.title} limit={limits.event.title}>
+            <Input name="title" defaultValue={event?.title} limit={limits.event.title} />
           </Field>
-          <Field label="One-line summary" error={err.headline} hint="Shown above the description.">
-            <Input name="headline" defaultValue={event?.headline} required maxLength={140} />
+          <Field label="One-line summary" error={err.headline} limit={limits.event.headline}>
+            <Input name="headline" defaultValue={event?.headline} limit={limits.event.headline} />
           </Field>
-          <Field label="Description" error={err.description}>
-            <textarea name="description" defaultValue={event?.description} required className={textareaClass} />
+          <Field label="Description (optional)" error={err.description}>
+            <Textarea name="description" defaultValue={event?.description ?? ""} limit={limits.event.description} />
           </Field>
           <Field label="Good to know (optional)" error={err.goodToKnow} hint="What to bring, accessibility, transport…">
-            <textarea name="goodToKnow" defaultValue={event?.goodToKnow ?? ""} className={textareaClass} />
+            <Textarea name="goodToKnow" defaultValue={event?.goodToKnow ?? ""} limit={limits.event.goodToKnow} />
           </Field>
           <Field label="Recap (optional)" error={err.recap} hint="Shown once the event has taken place.">
-            <textarea name="recap" defaultValue={event?.recap ?? ""} className={textareaClass} />
+            <Textarea name="recap" defaultValue={event?.recap ?? ""} limit={limits.event.recap} />
           </Field>
         </Card>
 
@@ -59,8 +61,14 @@ export function EventForm({ event }: { event?: EventValues }) {
           <h2 className="font-bold">On the day</h2>
           {rows.map((r) => (
             <div key={r.key} className="flex gap-2">
-              <Input name="scheduleTime" type="time" defaultValue={r.time} className="w-32 shrink-0" aria-label="Time" />
-              <Input name="scheduleLabel" defaultValue={r.label} placeholder="e.g. Warm-up and briefing" aria-label="What happens" />
+              <Input name="scheduleTime" type="time" defaultValue={r.time} className="w-28 shrink-0 px-2 sm:w-32 sm:px-4" aria-label="Time" />
+              <Input
+                name="scheduleLabel"
+                defaultValue={r.label}
+                limit={limits.event.scheduleLabel}
+                placeholder="e.g. Warm-up and briefing"
+                aria-label="What happens"
+              />
               <button
                 type="button"
                 aria-label="Remove this row"
@@ -85,7 +93,7 @@ export function EventForm({ event }: { event?: EventValues }) {
         </Card>
       </div>
 
-      <Card className="flex flex-col gap-4 self-start">
+      <Card className="flex min-w-0 flex-col gap-4 self-start">
         <Field label="Code / category" error={err.category}>
           <Select name="category" defaultValue={event?.category ?? "all"}>
             <option value="all">All codes</option>
@@ -100,8 +108,8 @@ export function EventForm({ event }: { event?: EventValues }) {
         <Field label="Starts" error={err.startsAt} hint="Irish time.">
           <Input name="startsAt" type="datetime-local" defaultValue={event?.startsAtLocal} required />
         </Field>
-        <Field label="Venue" error={err.venue}>
-          <Input name="venue" defaultValue={event?.venue} required />
+        <Field label="Venue" error={err.venue} limit={limits.event.venue}>
+          <Input name="venue" defaultValue={event?.venue} limit={limits.event.venue} />
         </Field>
         <Field label="Places (optional)" error={err.capacity} hint="Leave empty for no limit.">
           <Input name="capacity" type="number" min={1} defaultValue={event?.capacity ?? ""} />

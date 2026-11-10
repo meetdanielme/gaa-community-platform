@@ -9,7 +9,7 @@ import { advanceIfFunded, confirmedTotalCents, getOpenRound, talliesForRound } f
 
 export type GoalInput = {
   title: string;
-  purpose: string;
+  purpose: string | null;
   headline: string | null;
   description: string | null;
   targetCents: number;

@@ -75,7 +75,7 @@ export default async function EditEventPage({ params }: PageProps<"/admin/events
           {responses.map((r, i) => (
             <tr key={i}>
               <Td className="font-semibold">{r.memberName}</Td>
-              <Td>{[r.code, r.team].filter(Boolean).join(" · ") || "—"}</Td>
+              <Td>{[r.codes, r.team].filter(Boolean).join(" · ") || "—"}</Td>
               <Td>{r.response === "going" ? <Pill tone="green">Going</Pill> : <Pill>Not going</Pill>}</Td>
               <Td>
                 {r.contactName}

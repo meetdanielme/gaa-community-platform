@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { Fragment, useState, type ReactNode } from "react";
 import { Sheet } from "./sheet";
 import { Button } from "./ui";
 
@@ -19,13 +19,22 @@ export function SheetButton({
   size?: "md" | "sm";
 }) {
   const [open, setOpen] = useState(false);
+  // A fresh form each time the sheet opens, without the last save's message.
+  const [opened, setOpened] = useState(0);
   return (
     <>
-      <Button variant={variant} size={size} onClick={() => setOpen(true)}>
+      <Button
+        variant={variant}
+        size={size}
+        onClick={() => {
+          setOpened((n) => n + 1);
+          setOpen(true);
+        }}
+      >
         {label}
       </Button>
       <Sheet open={open} onClose={() => setOpen(false)} title={title}>
-        {children}
+        <Fragment key={opened}>{children}</Fragment>
       </Sheet>
     </>
   );

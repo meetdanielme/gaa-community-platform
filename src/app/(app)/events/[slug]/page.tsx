@@ -32,7 +32,7 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
         backHref="/events"
         action={<ShareButton title={e.title} text={`${e.title} — ${formatLongDate(e.startsAt)} at ${e.venue}.`} />}
       />
-      <PageBody className="grid gap-8 lg:grid-cols-[1.3fr_1fr]">
+      <PageBody className="grid gap-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
         <section className="flex flex-col gap-5">
           {e.imageUrl && (
             <div className="relative h-56 overflow-hidden rounded-3xl">
@@ -69,7 +69,7 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
 
           <div>
             <h3 className="font-semibold">{e.headline}</h3>
-            <p className="mt-3 max-w-md">{e.description}</p>
+            {e.description && <p className="mt-3 max-w-md">{e.description}</p>}
           </div>
 
           {e.schedule.length > 0 && (

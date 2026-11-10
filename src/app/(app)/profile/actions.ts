@@ -6,7 +6,14 @@ import { z } from "zod";
 import { fieldErrors, type FormState } from "@/lib/form-state";
 import { requireUser } from "@/lib/session";
 import { contactSchema, parseMemberForm } from "@/lib/validation";
-import { payMembershipFee, removeMember, saveMember, updateContactDetails } from "@/server/profile";
+import {
+  cancelMembership,
+  payMembershipFee,
+  removeMember,
+  saveMember,
+  updateContactDetails,
+} from "@/server/profile";
+import { savedMessage } from "@/lib/members";
 
 /* BR01 — validate before saving; on failure the previous saved state is kept. */
 export async function updateContactAction(_: FormState, formData: FormData): Promise<FormState> {
@@ -32,15 +39,27 @@ export async function saveMemberAction(_: FormState, formData: FormData): Promis
   if (!parsed.success) return fieldErrors(parsed.error);
   const saved = await saveMember(user.id, parsed.data);
   if (!saved) return { ok: false, message: "You can only edit family members you manage." };
-  if (!parsed.data.id) redirect(`/profile/members/${saved.id}`);
+  // The member page announces the team they were placed in.
+  if (!parsed.data.id) redirect(`/profile/members/${saved.id}?added=1`);
   refresh();
-  return { ok: true, message: "Member details saved." };
+  return { ok: true, message: savedMessage(saved) };
 }
 
 export async function removeMemberAction(memberId: string) {
   const user = await requireUser();
   await removeMember(user.id, z.string().uuid().parse(memberId));
   redirect("/profile");
+}
+
+export type CancelResult = { ok: true; alerted: boolean } | { ok: false; error: string };
+
+/* Cancel one membership (code). Paid memberships alert the club (see rules/membership). */
+export async function cancelMembershipAction(memberId: string, code: string): Promise<CancelResult> {
+  const user = await requireUser();
+  const saved = await cancelMembership(user.id, z.string().uuid().parse(memberId), z.string().max(40).parse(code));
+  if (!saved) return { ok: false, error: "That membership couldn't be found. It may already be cancelled." };
+  refresh();
+  return { ok: true, alerted: saved.cancelledPaid.length > 0 };
 }
 
 export type FeeResult =

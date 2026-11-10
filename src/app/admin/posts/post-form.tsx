@@ -1,15 +1,16 @@
 "use client";
 
 import { useFormAction } from "@/lib/use-form-action";
-import { codes } from "@/club.config";
+import { codes, postKinds } from "@/club.config";
 import { ImageField } from "@/components/admin/image-field";
-import { Field, Input, Select, textareaClass } from "@/components/form";
+import { Field, Input, Select } from "@/components/form";
+import { Textarea } from "@/components/textarea";
+import { limits } from "@/lib/limits";
 import { Button, Card, Notice } from "@/components/ui";
 import { savePostAction } from "./actions";
 
 type PostValues = {
   id: string;
-  authorName: string;
   kind: string;
   category: string | null;
   title: string;
@@ -19,39 +20,44 @@ type PostValues = {
   ctaHref: string | null;
 };
 
-export function PostForm({ post, clubName }: { post?: PostValues; clubName: string }) {
+export function PostForm({ post, author }: { post?: PostValues; author: string }) {
   const [state, onSubmit, pending] = useFormAction(savePostAction);
   const err = state?.errors ?? {};
   return (
-    <form onSubmit={onSubmit} className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+    <form onSubmit={onSubmit} className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
       {post && <input type="hidden" name="id" value={post.id} />}
-      <Card className="flex flex-col gap-4">
-        <Field label="Headline" error={err.title}>
-          <Input name="title" defaultValue={post?.title} required maxLength={120} />
+      <Card className="flex min-w-0 flex-col gap-4">
+        <Field label="Headline" error={err.title} limit={limits.post.title}>
+          <Input name="title" defaultValue={post?.title} limit={limits.post.title} />
         </Field>
-        <Field label="Text" error={err.body}>
-          <textarea name="body" defaultValue={post?.body} required maxLength={2000} className={textareaClass} />
+        <Field label="Text" error={err.body} hint={`Published as ${author}.`}>
+          <Textarea name="body" defaultValue={post?.body} limit={limits.post.body} className="min-h-48" />
         </Field>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 [&>*]:min-w-0">
           <Field label="Button label (optional)" error={err.ctaLabel}>
-            <Input name="ctaLabel" defaultValue={post?.ctaLabel ?? ""} placeholder="See event details" />
+            <Input
+              name="ctaLabel"
+              defaultValue={post?.ctaLabel ?? ""}
+              limit={limits.post.ctaLabel}
+              placeholder="See event details"
+            />
           </Field>
           <Field label="Button link" error={err.ctaHref} hint="e.g. /events/culture-night or /donate">
-            <Input name="ctaHref" defaultValue={post?.ctaHref ?? ""} placeholder="/events" />
+            <Input name="ctaHref" defaultValue={post?.ctaHref ?? ""} limit={limits.post.ctaHref} placeholder="/events" />
           </Field>
         </div>
       </Card>
-      <Card className="flex flex-col gap-4">
-        <Field label="From" error={err.authorName} hint={`e.g. ${clubName} Hurling, ${clubName} Coaching`}>
-          <Input name="authorName" defaultValue={post?.authorName ?? `${clubName} Community`} required />
-        </Field>
-        <Field label="Type" error={err.kind}>
-          <Input name="kind" defaultValue={post?.kind ?? "Club update"} required list="post-kinds" />
-          <datalist id="post-kinds">
-            {["Club update", "Match report", "Training notice", "Goal update", "Behind the scenes"].map((k) => (
-              <option key={k} value={k} />
+      <Card className="flex min-w-0 flex-col gap-4">
+        <Field label="Type" error={err.kind} hint="Each type has its own icon and colour in the feed.">
+          <Select name="kind" defaultValue={post?.kind ?? postKinds[0].id} required>
+            {postKinds.map((k) => (
+              <option key={k.id} value={k.id}>
+                {k.id}
+              </option>
             ))}
-          </datalist>
+            {/* Keep a type typed before the fixed list existed. */}
+            {post && !postKinds.some((k) => k.id === post.kind) && <option value={post.kind}>{post.kind}</option>}
+          </Select>
         </Field>
         <Field label="Code" error={err.category}>
           <Select name="category" defaultValue={post?.category ?? ""}>

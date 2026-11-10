@@ -4,7 +4,7 @@ import { refresh } from "next/cache";
 import { z } from "zod";
 import { requireUser } from "@/lib/session";
 import { voteRejectionMessages } from "@/lib/rules/voting";
-import { castVote, makeDonation } from "@/server/fundraising";
+import { castVote, clearVote, makeDonation } from "@/server/fundraising";
 
 const donationSchema = z.object({
   goalId: z.string().uuid(),
@@ -54,4 +54,12 @@ export async function voteAction(goalId: string): Promise<VoteActionResult> {
   refresh();
   if (decision.outcome === "rejected") return { ok: false, error: voteRejectionMessages[decision.reason] };
   return { ok: true, changed: decision.outcome !== "unchanged" };
+}
+
+export async function clearVoteAction(): Promise<VoteActionResult> {
+  const user = await requireUser();
+  const decision = await clearVote(user);
+  refresh();
+  if (decision.outcome === "rejected") return { ok: false, error: voteRejectionMessages[decision.reason] };
+  return { ok: true, changed: decision.outcome === "cleared" };
 }

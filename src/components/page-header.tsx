@@ -14,12 +14,12 @@ export function PageHeader({
   action?: ReactNode;
 }) {
   return (
-    <header className="sticky top-0 z-10 flex h-18 items-center gap-3 bg-white/95 px-4 backdrop-blur sm:px-10 lg:h-22">
+    <header className="sticky top-0 z-10 flex h-18 items-center gap-3 bg-surface/95 px-4 backdrop-blur sm:px-10 lg:h-22">
       {backHref && (
         <Link
           href={backHref}
           aria-label="Back"
-          className="grid size-11 place-items-center rounded-full bg-white text-navy shadow-md hover:bg-paper"
+          className="grid size-11 place-items-center rounded-full bg-surface text-navy shadow-md hover:bg-paper"
         >
           <BackIcon />
         </Link>
@@ -40,7 +40,7 @@ export function RoundIconButton(props: React.ComponentProps<"button">) {
     <button
       type="button"
       {...props}
-      className="grid size-11 place-items-center rounded-full bg-white text-navy shadow-md hover:bg-paper"
+      className="grid size-11 place-items-center rounded-full bg-surface text-navy shadow-md hover:bg-paper"
     />
   );
 }

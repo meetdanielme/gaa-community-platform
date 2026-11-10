@@ -37,7 +37,7 @@ export function AdminPage({
 
 export function Stat({ label, value, sub }: { label: string; value: ReactNode; sub?: ReactNode }) {
   return (
-    <div className="rounded-card bg-white p-5">
+    <div className="rounded-card bg-surface p-5">
       <p className="text-sm text-muted">{label}</p>
       <p className="mt-1 text-3xl font-bold text-navy">{value}</p>
       {sub && <p className="mt-1 text-xs text-muted">{sub}</p>}
@@ -48,7 +48,7 @@ export function Stat({ label, value, sub }: { label: string; value: ReactNode; s
 export function Table({ head, children, empty }: { head: ReactNode[]; children: ReactNode; empty?: string }) {
   const hasRows = Array.isArray(children) ? children.length > 0 : Boolean(children);
   return (
-    <div className="overflow-x-auto rounded-card bg-white">
+    <div className="overflow-x-auto rounded-card bg-surface">
       <table className="w-full text-left text-sm">
         <thead className="border-b border-paper text-xs tracking-wide text-muted uppercase">
           <tr>
@@ -80,9 +80,9 @@ export function Td({ children, className = "" }: { children: ReactNode; classNam
 }
 
 const pillTones = {
-  green: "bg-emerald-50 text-emerald-800",
-  amber: "bg-amber-50 text-amber-800",
-  red: "bg-red-50 text-red-800",
+  green: "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-200",
+  amber: "bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-200",
+  red: "bg-red-50 text-red-800 dark:bg-red-950/60 dark:text-red-200",
   grey: "bg-paper text-muted",
   navy: "bg-pale text-navy",
 };

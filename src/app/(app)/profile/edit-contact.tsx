@@ -3,6 +3,7 @@
 import { useFormAction } from "@/lib/use-form-action";
 import { useState } from "react";
 import { Field, Input } from "@/components/form";
+import { limits } from "@/lib/limits";
 import { Sheet } from "@/components/sheet";
 import { Button, Notice } from "@/components/ui";
 import { updateContactAction } from "./actions";
@@ -22,17 +23,17 @@ export function EditContactButton({
       <Button onClick={() => setOpen(true)}>Edit contact details</Button>
       <Sheet open={open} onClose={() => setOpen(false)} title="Contact details">
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
-          <Field label="Name" error={err.name}>
-            <Input name="name" defaultValue={user.name} required autoComplete="name" />
+          <Field label="Name" error={err.name} limit={limits.contact.name}>
+            <Input name="name" defaultValue={user.name} limit={limits.contact.name} autoComplete="name" />
           </Field>
           <Field label="Phone" error={err.phone}>
-            <Input name="phone" type="tel" defaultValue={user.phone ?? ""} autoComplete="tel" />
+            <Input name="phone" type="tel" defaultValue={user.phone ?? ""} limit={limits.contact.phone} autoComplete="tel" />
           </Field>
           <Field label="Email" hint="This is your sign-in email. Contact the club to change it.">
             <Input type="email" value={user.email} readOnly />
           </Field>
           <Field label="Eircode" error={err.eircode}>
-            <Input name="eircode" defaultValue={user.eircode ?? ""} autoComplete="postal-code" />
+            <Input name="eircode" defaultValue={user.eircode ?? ""} limit={limits.contact.eircode} autoComplete="postal-code" />
           </Field>
           {state?.ok && <Notice tone="success">{state.message}</Notice>}
           {state && !state.ok && <Notice tone="error">Please check the highlighted fields. Nothing was changed.</Notice>}

@@ -29,7 +29,7 @@ export default async function EditPostPage({ params }: PageProps<"/admin/posts/[
         </ConfirmButton>
       }
     >
-      <PostForm post={post} clubName={clubConfig.name} />
+      <PostForm post={post} author={clubConfig.postAuthor} />
     </AdminPage>
   );
 }

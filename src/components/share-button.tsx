@@ -29,7 +29,7 @@ export function ShareButton({ title, text }: { title: string; text: string }) {
         type="button"
         onClick={share}
         aria-label={`Share ${title}`}
-        className="grid size-11 place-items-center rounded-full bg-white text-navy shadow-md hover:bg-paper"
+        className="grid size-11 place-items-center rounded-full bg-surface text-navy shadow-md hover:bg-paper"
       >
         <ShareIcon />
       </button>

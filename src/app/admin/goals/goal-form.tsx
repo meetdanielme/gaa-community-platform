@@ -2,7 +2,10 @@
 
 import { useFormAction } from "@/lib/use-form-action";
 import { useState } from "react";
-import { Field, Input, textareaClass } from "@/components/form";
+import { Field, Input } from "@/components/form";
+import { Textarea } from "@/components/textarea";
+import { limits } from "@/lib/limits";
+import { formatMoney, parseEuros } from "@/lib/format";
 import { CloseIcon, PlusIcon } from "@/components/icons";
 import { Button, Card, Notice } from "@/components/ui";
 import { recordOfflineFundsAction, saveGoalAction } from "./actions";
@@ -10,7 +13,7 @@ import { recordOfflineFundsAction, saveGoalAction } from "./actions";
 type GoalValues = {
   id: string;
   title: string;
-  purpose: string;
+  purpose: string | null;
   headline: string | null;
   description: string | null;
   targetCents: number;
@@ -25,27 +28,32 @@ export function GoalForm({ goal }: { goal?: GoalValues }) {
   const initial = goal?.breakdown.length ? goal.breakdown : [{ label: "", amountCents: 0 }];
   const [rows, setRows] = useState(initial.map((r, key) => ({ label: r.label, amount: r.amountCents ? euro(r.amountCents) : "", key })));
   const [nextKey, setNextKey] = useState(rows.length);
-  const total = rows.reduce((n, r) => n + (Number(r.amount) || 0), 0);
+  const total = rows.reduce((n, r) => n + (parseEuros(r.amount) ?? 0), 0);
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+    <form onSubmit={onSubmit} className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
       {goal && <input type="hidden" name="id" value={goal.id} />}
-      <Card className="flex flex-col gap-4">
-        <Field label="Goal name" error={err.title}>
-          <Input name="title" defaultValue={goal?.title} required maxLength={80} placeholder="e.g. New Kits" />
+      <Card className="flex min-w-0 flex-col gap-4">
+        <Field label="Goal name" error={err.title} limit={limits.goal.title}>
+          <Input name="title" defaultValue={goal?.title} limit={limits.goal.title} placeholder="e.g. New Kits" />
         </Field>
-        <Field label="What it's for" error={err.purpose} hint="One sentence, shown on the ballot.">
-          <Input name="purpose" defaultValue={goal?.purpose} required maxLength={160} />
+        <Field label="What it's for (optional)" error={err.purpose} hint="One sentence, shown on the ballot." limit={limits.goal.purpose}>
+          <Input name="purpose" defaultValue={goal?.purpose ?? ""} limit={limits.goal.purpose} />
         </Field>
-        <Field label="Headline (optional)" error={err.headline}>
-          <Input name="headline" defaultValue={goal?.headline ?? ""} placeholder="e.g. A place for every player" />
+        <Field label="Headline (optional)" error={err.headline} limit={limits.goal.headline}>
+          <Input
+            name="headline"
+            defaultValue={goal?.headline ?? ""}
+            limit={limits.goal.headline}
+            placeholder="e.g. A place for every player"
+          />
         </Field>
         <Field label="Why it matters (optional)" error={err.description} hint="Who benefits across the four codes?">
-          <textarea name="description" defaultValue={goal?.description ?? ""} className={textareaClass} />
+          <Textarea name="description" defaultValue={goal?.description ?? ""} limit={limits.goal.description} />
         </Field>
       </Card>
 
-      <Card className="flex flex-col gap-4 self-start">
+      <Card className="flex min-w-0 flex-col gap-4 self-start">
         <Field label="Target (€)" error={err.targetCents}>
           <Input name="targetCents" inputMode="decimal" defaultValue={goal ? euro(goal.targetCents) : ""} required />
         </Field>
@@ -58,6 +66,7 @@ export function GoalForm({ goal }: { goal?: GoalValues }) {
                 value={r.label}
                 onChange={(e) => setRows(rows.map((x) => (x.key === r.key ? { ...x, label: e.target.value } : x)))}
                 placeholder="e.g. Delivery"
+                maxLength={limits.goal.breakdownLabel[1]}
                 aria-label="Cost description"
               />
               <Input
@@ -67,7 +76,7 @@ export function GoalForm({ goal }: { goal?: GoalValues }) {
                 onChange={(e) => setRows(rows.map((x) => (x.key === r.key ? { ...x, amount: e.target.value } : x)))}
                 placeholder="€"
                 aria-label="Amount in euro"
-                className="w-28 shrink-0"
+                className="w-24 shrink-0 sm:w-28"
               />
               <button
                 type="button"
@@ -91,9 +100,9 @@ export function GoalForm({ goal }: { goal?: GoalValues }) {
             >
               <PlusIcon className="size-4" /> Add a cost
             </Button>
-            <span className="text-sm text-muted">Total €{total.toLocaleString("en-IE")}</span>
+            <span className="text-sm text-muted">Total {formatMoney(total)}</span>
           </div>
-          {err.breakdown && <p className="text-xs font-medium text-red-700">{err.breakdown}</p>}
+          {err.breakdown && <p className="text-xs font-medium text-red-700 dark:text-red-300">{err.breakdown}</p>}
         </div>
         {state?.message && <Notice tone="error">{state.message}</Notice>}
         {state && !state.ok && !state.message && <Notice tone="error">Please check the highlighted fields.</Notice>}
@@ -110,12 +119,12 @@ export function OfflineFundsForm({ goalId }: { goalId: string }) {
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-3">
       <input type="hidden" name="goalId" value={goalId} />
-      <div className="grid gap-3 sm:grid-cols-[8rem_1fr]">
+      <div className="grid gap-3 sm:grid-cols-[8rem_minmax(0,1fr)]">
         <Field label="Amount (€)" error={state?.errors?.amount}>
           <Input name="amount" inputMode="decimal" required />
         </Field>
         <Field label="Note" error={state?.errors?.note}>
-          <Input name="note" placeholder="e.g. Church gate collection" maxLength={120} />
+          <Input name="note" placeholder="e.g. Church gate collection" limit={limits.goal.offlineNote} />
         </Field>
       </div>
       {state?.message && <Notice tone={state.ok ? "success" : "error"}>{state.message}</Notice>}

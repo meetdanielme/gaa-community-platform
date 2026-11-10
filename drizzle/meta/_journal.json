@@ -22,6 +22,27 @@
       "when": 1794310551441,
       "tag": "0002_remove_helps_with",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794324506417,
+      "tag": "0003_memberships",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794324514011,
+      "tag": "0004_drop_member_code",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794325359558,
+      "tag": "0005_optional_descriptions",
+      "breakpoints": true
     }
   ]
 }

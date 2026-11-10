@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { Field, Input } from "@/components/form";
+import { limits } from "@/lib/limits";
 import { Button, Notice } from "@/components/ui";
 import { ROLES, roleLabels, serializeRoles, type Role } from "@/lib/rules/roles";
 
@@ -50,8 +51,8 @@ export default function SignUpPage() {
         <p className="mt-1 text-muted">One account for you and your family.</p>
       </div>
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
-        <Field label="Full name">
-          <Input name="name" autoComplete="name" required maxLength={80} />
+        <Field label="Full name" limit={limits.contact.name}>
+          <Input name="name" autoComplete="name" limit={limits.contact.name} />
         </Field>
         <Field label="Email">
           <Input name="email" type="email" autoComplete="email" required />

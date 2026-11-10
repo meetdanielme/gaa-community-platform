@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { clubConfig } from "@/club.config";
 import { authClient } from "@/lib/auth-client";
+import { ScrollMemory } from "./scroll-memory";
 import { CalendarIcon, FeedIcon, HeartIcon, PersonIcon, SettingsIcon, SignOutIcon } from "./icons";
 
 const nav = [
@@ -15,32 +16,80 @@ const nav = [
   { href: "/profile", label: "Profile", Icon: PersonIcon },
 ] as const;
 
+/** Brand rule: the artwork only sits on white, so dark mode gives it a white plate. */
+const plate = "dark:box-content dark:bg-white";
+
 /** The club logo lockup (artwork, per the brand guidelines). */
-export function Logo({ width = 176, priority = false }: { width?: number; priority?: boolean }) {
+export function Logo({
+  width = 176,
+  priority = false,
+  onWhite = false,
+}: {
+  width?: number;
+  priority?: boolean;
+  /** Already on a white background in every theme, so no plate is needed. */
+  onWhite?: boolean;
+}) {
   const { src, width: w, height: h } = clubConfig.logo;
-  return <Image src={src} alt={clubConfig.fullName} width={width} height={Math.round((width * h) / w)} priority={priority} />;
+  return (
+    <Image
+      src={src}
+      alt={clubConfig.fullName}
+      width={width}
+      height={Math.round((width * h) / w)}
+      priority={priority}
+      className={onWhite ? "" : `${plate} dark:rounded-xl dark:px-3 dark:py-2`}
+    />
+  );
 }
 
 /** The compact shield badge. */
 export function Badge({ size = 32, className = "" }: { size?: number; className?: string }) {
-  return <Image src={clubConfig.badge.src} alt="" width={size} height={size} className={className} />;
+  return (
+    <Image
+      src={clubConfig.badge.src}
+      alt=""
+      width={size}
+      height={size}
+      className={`${plate} dark:rounded-full dark:p-0.5 ${className}`}
+    />
+  );
+}
+
+function useSignOut() {
+  const router = useRouter();
+  return async () => {
+    await authClient.signOut();
+    router.push("/");
+    router.refresh();
+  };
+}
+
+/** Sign out, for places the desktop sidebar isn't shown (e.g. Profile on phones). */
+export function SignOutButton({ className = "" }: { className?: string }) {
+  const signOut = useSignOut();
+  return (
+    <button
+      type="button"
+      onClick={signOut}
+      className={`flex h-11 items-center gap-2 rounded-full bg-surface px-4 text-sm font-semibold text-navy shadow-md hover:bg-paper ${className}`}
+    >
+      <SignOutIcon className="size-5" />
+      Sign out
+    </button>
+  );
 }
 
 export function AppShell({ children, isAdmin = false }: { children: ReactNode; isAdmin?: boolean }) {
   const pathname = usePathname();
-  const router = useRouter();
+  const signOut = useSignOut();
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
-
-  async function signOut() {
-    await authClient.signOut();
-    router.push("/");
-    router.refresh();
-  }
 
   return (
     <div className="min-h-dvh lg:pl-56">
+      <ScrollMemory />
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 hidden w-56 flex-col bg-white px-5 py-7 lg:flex">
+      <aside className="fixed inset-y-0 left-0 hidden w-56 flex-col bg-surface px-5 py-7 lg:flex">
         <Link href="/feed" aria-label={`${clubConfig.name} home`} className="px-2">
           <Logo width={164} priority />
         </Link>
@@ -51,7 +100,7 @@ export function AppShell({ children, isAdmin = false }: { children: ReactNode; i
               href={href}
               aria-current={isActive(href) ? "page" : undefined}
               className={`flex h-13 items-center gap-3 rounded-full px-4 font-semibold text-navy transition hover:bg-paper ${
-                isActive(href) ? "bg-[#e1edf6]" : ""
+                isActive(href) ? "bg-nav-active" : ""
               }`}
             >
               <Icon />
@@ -83,7 +132,7 @@ export function AppShell({ children, isAdmin = false }: { children: ReactNode; i
       {/* Mobile floating tab bar */}
       <nav
         aria-label="Main"
-        className="fixed inset-x-4 bottom-4 z-10 flex h-17 items-center justify-around rounded-full border border-white/60 bg-white/85 shadow-lg backdrop-blur-xl lg:hidden"
+        className="fixed inset-x-4 bottom-4 z-10 flex h-17 items-center justify-around rounded-full border border-surface/60 bg-surface/85 shadow-lg backdrop-blur-xl lg:hidden"
       >
         {nav.map(({ href, label, Icon }) => (
           <Link
@@ -91,7 +140,7 @@ export function AppShell({ children, isAdmin = false }: { children: ReactNode; i
             href={href}
             aria-current={isActive(href) ? "page" : undefined}
             className={`flex flex-col items-center gap-0.5 rounded-full px-4 py-1.5 text-xs font-semibold ${
-              isActive(href) ? "bg-[#e1edf6] text-navy" : "text-muted"
+              isActive(href) ? "bg-nav-active text-navy" : "text-muted"
             }`}
           >
             <Icon className="size-6" />

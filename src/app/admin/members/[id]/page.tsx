@@ -18,6 +18,7 @@ import {
   setFeeStatusAction,
 } from "../actions";
 import { AccessForm } from "./access-form";
+import { PaidMembershipWarning } from "@/app/(app)/profile/paid-warning";
 
 export const metadata: Metadata = { title: "Member account" };
 
@@ -32,7 +33,7 @@ export default async function AdminAccountPage({ params }: PageProps<"/admin/mem
 
   return (
     <AdminPage title={u.name} description={u.email} back={{ href: "/admin/members", label: "Members" }}>
-      <div className="grid gap-6 lg:grid-cols-[1fr_1.6fr]">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)]">
         <div className="flex flex-col gap-6">
           <Card className="flex flex-col gap-3">
             <h2 className="font-bold">Contact</h2>
@@ -59,65 +60,89 @@ export default async function AdminAccountPage({ params }: PageProps<"/admin/mem
           </div>
           {members.map((m) => (
             <Card key={m.id} className="flex flex-col gap-3">
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <div>
-                  <p className="font-semibold">
-                    {m.fullName} <span className="font-normal text-muted">· {relationshipLabels[m.relationship]}</span>
-                  </p>
-                  <p className="text-sm text-muted">
-                    {m.code ? codeLabel(m.code) : "Not playing"}
-                    {m.team ? ` · ${m.team}` : ""}
-                  </p>
-                </div>
-                {m.fee ? (
-                  <Pill tone={feeTone[m.fee.status as keyof typeof feeTone] ?? "grey"}>
-                    {feeStatusLabels[m.fee.status]} · {formatMoney(m.fee.amountCents)}
-                  </Pill>
-                ) : (
-                  <Pill>{m.code ? "No membership" : "Not playing · no fee"}</Pill>
-                )}
+              <div>
+                <p className="font-semibold">
+                  {m.fullName} <span className="font-normal text-muted">· {relationshipLabels[m.relationship]}</span>
+                </p>
+                <p className="text-sm text-muted">
+                  {m.codes.length ? m.codes.map(codeLabel).join(" & ") : "Not playing · no fee"}
+                  {m.team ? ` · ${m.team}` : ""}
+                  {m.dateOfBirth ? ` · born ${formatLongDate(new Date(m.dateOfBirth))}` : ""}
+                </p>
               </div>
+              {m.fees.map(({ code, fee }) => (
+                <div key={code} className="flex flex-col gap-2 rounded-xl bg-paper p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-sm font-semibold">{codeLabel(code)}</span>
+                    {fee ? (
+                      <Pill tone={feeTone[fee.status as keyof typeof feeTone] ?? "grey"}>
+                        {feeStatusLabels[fee.status]} · {formatMoney(fee.amountCents)}
+                      </Pill>
+                    ) : (
+                      <Pill>No membership</Pill>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {fee && fee.status !== "paid" && (
+                      <form action={setFeeStatusAction.bind(null, fee.id, "paid")}>
+                        <Button type="submit" size="sm">
+                          Mark paid (cash/transfer)
+                        </Button>
+                      </form>
+                    )}
+                    {fee && fee.status !== "sponsored" && fee.status !== "paid" && (
+                      <form action={setFeeStatusAction.bind(null, fee.id, "sponsored")}>
+                        <Button type="submit" size="sm" variant="ghost">
+                          Sponsor
+                        </Button>
+                      </form>
+                    )}
+                    {fee && fee.status !== "unpaid" && (
+                      <form action={setFeeStatusAction.bind(null, fee.id, "unpaid")}>
+                        <Button type="submit" size="sm" variant="ghost">
+                          Mark unpaid
+                        </Button>
+                      </form>
+                    )}
+                    {!fee && (
+                      <form action={createFeeAction.bind(null, m.id, code)}>
+                        <Button type="submit" size="sm">
+                          Add {clubConfig.season} membership
+                        </Button>
+                      </form>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {m.cancelledFees.map((f) => (
+                <p key={f.id} className="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:bg-amber-950 dark:text-amber-200">
+                  Cancelled {codeLabel(f.code)} membership · {feeStatusLabels[f.status]} {formatMoney(f.amountCents)} ·
+                  review refund
+                </p>
+              ))}
               <div className="flex flex-wrap gap-2">
-                {m.fee && m.fee.status !== "paid" && (
-                  <form action={setFeeStatusAction.bind(null, m.fee.id, "paid")}>
-                    <Button type="submit" size="sm">
-                      Mark paid (cash/transfer)
-                    </Button>
-                  </form>
-                )}
-                {m.fee && m.fee.status !== "sponsored" && m.fee.status !== "paid" && (
-                  <form action={setFeeStatusAction.bind(null, m.fee.id, "sponsored")}>
-                    <Button type="submit" size="sm" variant="ghost">
-                      Sponsor
-                    </Button>
-                  </form>
-                )}
-                {m.fee && m.fee.status !== "unpaid" && (
-                  <form action={setFeeStatusAction.bind(null, m.fee.id, "unpaid")}>
-                    <Button type="submit" size="sm" variant="ghost">
-                      Mark unpaid
-                    </Button>
-                  </form>
-                )}
-                {!m.fee && m.code && (
-                  <form action={createFeeAction.bind(null, m.id)}>
-                    <Button type="submit" size="sm">
-                      Add {clubConfig.season} membership
-                    </Button>
-                  </form>
-                )}
                 <SheetButton label="Edit" title={`Edit ${m.fullName}`} size="sm" variant="ghost">
-                  <MemberForm member={m} action={saveMemberForAccountAction} hidden={{ userId: u.id }} />
+                  <MemberForm
+                    member={m}
+                    paidCodes={m.fees.filter((f) => f.fee?.status === "paid").map((f) => f.code)}
+                    action={saveMemberForAccountAction}
+                    hidden={{ userId: u.id }}
+                  />
                 </SheetButton>
                 {m.relationship !== "self" && (
                   <ConfirmButton
                     label="Remove"
                     title={`Remove ${m.fullName}?`}
                     confirmLabel="Remove member"
+                    cancelLabel="Keep member"
                     size="sm"
                     action={removeMemberForAccountAction.bind(null, u.id, m.id)}
                   >
-                    {m.fullName} will be unlinked from {u.name}&apos;s account, with their responses and membership record.
+                    <p>
+                      {m.fullName} will be unlinked from {u.name}&apos;s account, with their responses and membership
+                      record.
+                    </p>
+                    <PaidMembershipWarning member={m} />
                   </ConfirmButton>
                 )}
               </div>

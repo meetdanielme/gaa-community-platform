@@ -32,6 +32,17 @@ export function decideVote(input: VoteInput): VoteDecision {
   return { outcome: "saved" };
 }
 
+/** A voter may withdraw their choice while the round is open, without picking another. */
+export function decideClearVote(input: {
+  voterEligible: boolean;
+  roundOpen: boolean;
+  hasChoice: boolean;
+}): { outcome: "cleared" | "unchanged" } | { outcome: "rejected"; reason: "not_eligible" | "round_closed" } {
+  if (!input.voterEligible) return { outcome: "rejected", reason: "not_eligible" };
+  if (!input.roundOpen) return { outcome: "rejected", reason: "round_closed" };
+  return { outcome: input.hasChoice ? "cleared" : "unchanged" };
+}
+
 export const voteRejectionMessages: Record<
   Extract<VoteDecision, { outcome: "rejected" }>["reason"],
   string

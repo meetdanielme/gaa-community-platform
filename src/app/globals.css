@@ -1,9 +1,28 @@
 @import "tailwindcss";
 
 /*
+ * `dark:` follows the device setting unless someone picks Light or Dark in
+ * their profile, which sets data-theme on <html> (see the root layout).
+ */
+@custom-variant dark {
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme="light"]), :root:not([data-theme="light"]) *) {
+      @slot;
+    }
+  }
+}
+
+/*
  * Design tokens from the Figma hi-fi prototype ("colour/*" variables).
  * Brand colours are injected per club from src/club.config.ts as
  * --brand-* custom properties on <html>; these are fallbacks.
+ *
+ * Each token is light-dark(light value, dark value). Dark values are derived
+ * from the brand colours where they can be, so another club's palette still
+ * works in dark mode.
  */
 :root {
   --brand-primary: #003660;
@@ -13,28 +32,64 @@
   --brand-muted: #647482;
   --brand-pale: #e8eff3;
   --brand-paper: #f4f6f8;
+
+  color-scheme: light dark;
+  /* Page background, and cards/sheets on top of it */
+  --paper: light-dark(var(--brand-paper), #0b131a);
+  --surface: light-dark(#ffffff, #15212c);
+  /* Body text and secondary text */
+  --ink: light-dark(var(--brand-ink), #e6ecf1);
+  --muted: light-dark(var(--brand-muted), #9badbb);
+  /* Brand-coloured text, icons and outlines: lightened in dark mode to stay readable */
+  --navy: light-dark(var(--brand-primary), color-mix(in oklab, var(--brand-primary) 25%, #dcebfa));
+  /* Filled brand surfaces with white text (primary buttons, date chips) */
+  --brand-fill: light-dark(var(--brand-primary), color-mix(in oklab, var(--brand-primary) 75%, #4f8fcf));
+  --pale: light-dark(var(--brand-pale), #1f3040);
+  --pale-hover: light-dark(#dbe6ec, #29405a);
+  --nav-active: light-dark(#e1edf6, #1d3a55);
+  --line: light-dark(#d5dee5, #2f4252);
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
 }
 
 @theme inline {
-  --color-navy: var(--brand-primary);
+  --color-navy: var(--navy);
+  --color-brand: var(--brand-fill);
   --color-gold: var(--brand-accent);
   --color-alert: var(--brand-alert);
-  --color-ink: var(--brand-ink);
-  --color-muted: var(--brand-muted);
-  --color-pale: var(--brand-pale);
-  --color-paper: var(--brand-paper);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-pale: var(--pale);
+  --color-pale-hover: var(--pale-hover);
+  --color-nav-active: var(--nav-active);
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-line: var(--line);
   --font-sans: var(--font-inter);
   --radius-card: 1.5rem;
 }
 
 body {
-  background: var(--brand-paper);
-  color: var(--brand-ink);
+  background: var(--paper);
+  color: var(--ink);
+}
+
+/*
+ * Code and post-type tags: set --fg (text) and --bg (tint) inline. In dark
+ * mode the tint becomes a translucent wash of the colour, with lighter text.
+ */
+.tinted {
+  color: light-dark(var(--fg), color-mix(in oklab, var(--fg) 35%, white));
+  background-color: light-dark(var(--bg), color-mix(in oklab, var(--fg) 30%, transparent));
 }
 
 /* Native <dialog> used for sheets. */
 dialog::backdrop {
-  background: rgb(0 0 0 / 0.4);
+  background: rgb(0 0 0 / 0.5);
 }
 dialog[open] {
   animation: sheet-in 160ms ease-out;

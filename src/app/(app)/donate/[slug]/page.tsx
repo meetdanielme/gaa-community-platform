@@ -57,7 +57,7 @@ export default async function GoalPage({ params }: PageProps<"/donate/[slug]">) 
                 <Tag>{statusLabel[goal.status] ?? goal.status}</Tag>
               </div>
               <h2 className="text-3xl font-bold tracking-tight text-navy">{goal.title}</h2>
-              <p>{goal.purpose}</p>
+              {goal.purpose && <p>{goal.purpose}</p>}
               <p className="text-sm text-muted">Target {formatMoney(goal.targetCents)}</p>
             </Card>
           )}
@@ -65,7 +65,7 @@ export default async function GoalPage({ params }: PageProps<"/donate/[slug]">) 
 
         <section className="flex flex-col gap-6">
           {goal.headline && <h2 className="text-2xl font-bold tracking-tight">{goal.headline}</h2>}
-          {(goal.description ?? goal.purpose).split("\n\n").map((para, i) => (
+          {(goal.description ?? goal.purpose ?? "").split("\n\n").filter(Boolean).map((para, i) => (
             <p key={i} className="max-w-md">
               {para}
             </p>

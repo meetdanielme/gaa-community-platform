@@ -60,7 +60,7 @@ export function AccountSecurity() {
     <Card className="flex flex-col gap-3">
       <h2 className="text-xl font-bold">Account &amp; privacy</h2>
       <Button onClick={() => open("password")}>Change password</Button>
-      <Button variant="ghost" className="text-red-700" onClick={() => open("delete")}>
+      <Button variant="ghost" className="text-red-700 dark:text-red-300" onClick={() => open("delete")}>
         Delete my account
       </Button>
 

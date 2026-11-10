@@ -39,6 +39,12 @@ export function RespondButton({
         ? `Update responses (${responded.length} going)`
         : "Respond for your family";
 
+  function close() {
+    setOpen(false);
+    setSaved(null);
+    setError(null);
+  }
+
   function respond(a: Attendee, choice: EventResponseChoice) {
     setError(null);
     setSaved(null);
@@ -54,7 +60,7 @@ export function RespondButton({
       <Button variant="primary" onClick={() => setOpen(true)}>
         {label}
       </Button>
-      <Sheet open={open} onClose={() => setOpen(false)} title="Your event response">
+      <Sheet open={open} onClose={close} title="Your event response">
         <p className="text-lg font-bold text-navy">{eventTitle}</p>
         <ul className="flex flex-col gap-3">
           {attendees.map((a) => (
@@ -83,6 +89,11 @@ export function RespondButton({
         </ul>
         {saved && <Notice tone="success">Saved — {saved}.</Notice>}
         {error && <Notice tone="error">{error}</Notice>}
+        {saved && (
+          <Button variant="primary" onClick={close} disabled={pending}>
+            OK
+          </Button>
+        )}
       </Sheet>
     </>
   );

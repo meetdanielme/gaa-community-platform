@@ -26,7 +26,7 @@ export default async function LandingPage() {
   if (await getSession()) redirect("/feed");
 
   return (
-    <div className="min-h-dvh bg-white">
+    <div className="min-h-dvh bg-surface">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-4 py-6 sm:px-8">
         <Logo width={200} priority />
         <Link href="/sign-in" className="font-semibold text-navy hover:underline">
@@ -85,7 +85,7 @@ export default async function LandingPage() {
         <section className="bg-paper">
           <div className="mx-auto grid max-w-6xl gap-4 px-4 py-14 sm:px-8 md:grid-cols-3">
             {features.map((f) => (
-              <div key={f.title} className="rounded-card bg-white p-6">
+              <div key={f.title} className="rounded-card bg-surface p-6">
                 <h2 className="text-lg font-bold text-navy">{f.title}</h2>
                 <p className="mt-2 text-muted">{f.body}</p>
               </div>

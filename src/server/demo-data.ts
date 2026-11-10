@@ -6,6 +6,7 @@
  * Dates are relative to "now" so a fresh demo always has upcoming events.
  * Costs are illustrative prototype values, not verified club spending.
  */
+import { clubConfig } from "@/club.config";
 import type { BreakdownItem, ScheduleItem } from "@/db/schema";
 import { DEMO_ADMIN, DEMO_MEMBER, DEMO_PASSWORD } from "@/lib/demo";
 
@@ -25,10 +26,37 @@ export const demoUser = {
   phone: "+353 123 45678",
   eircode: "T12 KV06",
   roles: "family_supporter",
+  /** Teams come from date of birth (U18, U16 and Adult in 2026). Fees are per code. */
   family: [
-    { fullName: "Sandu Alam", relationship: "child", code: "football", team: "U18", fee: "unpaid" },
-    { fullName: "Emmanuella Alam", relationship: "child", code: "camogie", team: "U18", fee: "paid" },
-    { fullName: "Daniel Alam", relationship: "sibling", code: "hurling", team: "Adult", fee: "sponsored" },
+    {
+      fullName: "Sandu Alam",
+      relationship: "child",
+      dateOfBirth: "2009-04-12",
+      memberships: [
+        { code: "football", fee: "unpaid" },
+        { code: "hurling", fee: "unpaid" },
+      ],
+    },
+    {
+      fullName: "Emmanuella Alam",
+      relationship: "child",
+      dateOfBirth: "2010-09-03",
+      memberships: [
+        { code: "camogie", fee: "paid" },
+        { code: "ladies_football", fee: "unpaid" },
+      ],
+    },
+    {
+      fullName: "Daniel Alam",
+      relationship: "sibling",
+      dateOfBirth: "1999-01-20",
+      memberships: [{ code: "hurling", fee: "sponsored" }],
+    },
+  ],
+  /** Events the family has already said they're going to (by member name). */
+  going: [
+    { slug: "culture-night", fullName: "Evan Alam" },
+    { slug: "culture-night", fullName: "Emmanuella Alam" },
   ],
 };
 
@@ -42,7 +70,7 @@ export const demoAdmin = {
 
 export const posts = [
   {
-    authorName: "Saints Camogie",
+    authorName: clubConfig.postAuthor,
     kind: "Match report",
     category: "camogie",
     title: "A brilliant morning together.",
@@ -53,7 +81,7 @@ export const posts = [
     publishedAt: hoursAgo(26),
   },
   {
-    authorName: "Saints Hurling",
+    authorName: clubConfig.postAuthor,
     kind: "Club update",
     category: "hurling",
     title: "Next stop: tournament day.",
@@ -64,7 +92,7 @@ export const posts = [
     publishedAt: hoursAgo(2),
   },
   {
-    authorName: "Saints Community",
+    authorName: clubConfig.postAuthor,
     kind: "Behind the scenes",
     category: null,
     title: "The pitch crew deserve a medal.",
@@ -75,7 +103,7 @@ export const posts = [
     publishedAt: hoursAgo(5),
   },
   {
-    authorName: "Saints Coaching",
+    authorName: clubConfig.postAuthor,
     kind: "Training notice",
     category: null,
     title: "Wet-weather training update",
@@ -86,7 +114,7 @@ export const posts = [
     publishedAt: hoursAgo(3),
   },
   {
-    authorName: "Saints Fundraising",
+    authorName: clubConfig.postAuthor,
     kind: "Goal update",
     category: null,
     title: "You choose what's next.",

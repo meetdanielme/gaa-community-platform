@@ -3,12 +3,13 @@
  * business-rules pack, so the coursework and the code stay in step.
  */
 import { describe, expect, it } from "vitest";
-import { decideVote } from "./voting";
+import { formatMoney, parseEuros } from "../format";
+import { decideClearVote, decideVote } from "./voting";
 import { decideProgression } from "./progression";
 import { decideFeePayment, validateDonation } from "./payments";
 import { decideEventResponse } from "./events";
 import { canPay, canVote, parseRoles } from "./roles";
-import { requiresMembership, syncMembershipFee } from "./membership";
+import { assignTeam, cancellationNeedsAlert, requiresMembership, syncMembershipFee } from "./membership";
 
 describe("roles", () => {
   it("parses and filters unknown roles", () => {
@@ -54,6 +55,19 @@ describe("BR07 voting", () => {
   it("rejects ineligible voters", () => {
     expect(decideVote({ ...base, voterEligible: false })).toMatchObject({
       reason: "not_eligible",
+    });
+  });
+});
+
+describe("BR07 clearing a vote", () => {
+  it("removes a saved choice without replacing it", () => {
+    expect(decideClearVote({ voterEligible: true, roundOpen: true, hasChoice: true })).toEqual({ outcome: "cleared" });
+    expect(decideClearVote({ voterEligible: true, roundOpen: true, hasChoice: false })).toEqual({ outcome: "unchanged" });
+  });
+  it("can't change a closed round", () => {
+    expect(decideClearVote({ voterEligible: true, roundOpen: false, hasChoice: true })).toEqual({
+      outcome: "rejected",
+      reason: "round_closed",
     });
   });
 });
@@ -165,14 +179,56 @@ describe("BR03 event response", () => {
 
 describe("membership fees", () => {
   it("are only owed for people playing a code", () => {
-    expect(requiresMembership({ code: null })).toBe(false);
-    expect(requiresMembership({ code: "hurling" })).toBe(true);
+    expect(requiresMembership({ codes: [] })).toBe(false);
+    expect(requiresMembership({ codes: ["hurling", "football"] })).toBe(true);
   });
-  it("are created when someone starts playing and removed if they stop before paying", () => {
-    expect(syncMembershipFee({ code: "camogie", feeStatus: null })).toBe("create");
-    expect(syncMembershipFee({ code: "camogie", feeStatus: "unpaid" })).toBe("keep");
-    expect(syncMembershipFee({ code: null, feeStatus: "unpaid" })).toBe("remove");
-    expect(syncMembershipFee({ code: null, feeStatus: "paid" })).toBe("keep");
-    expect(syncMembershipFee({ code: null, feeStatus: null })).toBe("keep");
+  it("are created when someone starts playing a code and removed if they stop before paying", () => {
+    expect(syncMembershipFee({ plays: true, feeStatus: null })).toBe("create");
+    expect(syncMembershipFee({ plays: true, feeStatus: "unpaid" })).toBe("keep");
+    expect(syncMembershipFee({ plays: false, feeStatus: "unpaid" })).toBe("remove");
+    expect(syncMembershipFee({ plays: false, feeStatus: "paid" })).toBe("keep");
+    expect(syncMembershipFee({ plays: false, feeStatus: null })).toBe("keep");
+  });
+  it("alerts when a paid membership is cancelled", () => {
+    expect(cancellationNeedsAlert("paid")).toBe(true);
+    expect(cancellationNeedsAlert("pending")).toBe(true);
+    expect(cancellationNeedsAlert("unpaid")).toBe(false);
+    expect(cancellationNeedsAlert(null)).toBe(false);
+  });
+});
+
+describe("team assignment", () => {
+  const grades = [8, 10, 12, 14, 16, 18, 20];
+  const team = (dob: string) => assignTeam(dob, "2026/27", grades, 4);
+  it("uses the age reached during the season's first year", () => {
+    expect(team("2014-12-31")).toBe("U12"); // turns 12 in 2026
+    expect(team("2015-01-01")).toBe("U12"); // turns 11
+    expect(team("2013-06-01")).toBe("U14"); // turns 13
+    expect(team("2008-03-15")).toBe("U18");
+  });
+  it("puts anyone past the last grade in the adult team", () => {
+    expect(team("2005-05-05")).toBe("Adult");
+    expect(team("1980-01-01")).toBe("Adult");
+  });
+  it("turns away people too young to play", () => {
+    expect(team("2023-01-01")).toBeNull();
+    expect(team("2022-01-01")).toBe("U8");
+  });
+});
+
+describe("money amounts", () => {
+  it("accepts euro amounts with up to 2 decimals", () => {
+    expect(parseEuros("15")).toBe(1500);
+    expect(parseEuros("12.5")).toBe(1250);
+    expect(parseEuros("12,50")).toBe(1250);
+    expect(parseEuros("€1,250.75")).toBe(125075);
+    expect(parseEuros("0.10")).toBe(10);
+  });
+  it("rejects anything else", () => {
+    for (const v of ["", "12.345", "1.2.3", "abc", "-5", "12,5,0"]) expect(parseEuros(v)).toBeNull();
+  });
+  it("shows cents only when there are some", () => {
+    expect(formatMoney(1500)).toBe("€15");
+    expect(formatMoney(1250)).toBe("€12.50");
   });
 });

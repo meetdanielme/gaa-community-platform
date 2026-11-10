@@ -13,8 +13,17 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: clubConfig.colours.primary,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: clubConfig.colours.primary },
+    { media: "(prefers-color-scheme: dark)", color: "#0b131a" },
+  ],
 };
+
+/**
+ * Applies a Light/Dark choice saved in Profile before the page paints, so
+ * there's no flash of the wrong theme. "System" stores nothing.
+ */
+const themeScript = `try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}`;
 
 const brandVars = {
   "--brand-primary": clubConfig.colours.primary,
@@ -28,7 +37,11 @@ const brandVars = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en-IE" className={`${inter.variable} h-full antialiased`} style={brandVars}>
+    // suppressHydrationWarning: the theme script may set data-theme before React hydrates.
+    <html lang="en-IE" className={`${inter.variable} h-full antialiased`} style={brandVars} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body className="min-h-full font-sans">{children}</body>
     </html>
   );

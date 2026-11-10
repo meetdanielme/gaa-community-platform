@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { CodeTag, LinkButton } from "@/components/ui";
+import { CodeTag, KindLabel, LinkButton } from "@/components/ui";
 import { formatLongDate } from "@/lib/format";
 import { listPostsAdmin } from "@/server/admin/content";
 import { AdminPage, Table, Td } from "../ui";
@@ -18,16 +18,17 @@ export default async function AdminPostsPage() {
         </LinkButton>
       }
     >
-      <Table head={["Headline", "From", "Code", "Published"]} empty="No posts yet — publish the first one.">
+      <Table head={["Headline", "Type", "Code", "Published"]} empty="No posts yet — publish the first one.">
         {posts.map((p) => (
           <tr key={p.id}>
             <Td>
               <Link href={`/admin/posts/${p.id}`} className="font-semibold text-navy hover:underline">
                 {p.title}
               </Link>
-              <p className="text-xs text-muted">{p.kind}</p>
             </Td>
-            <Td>{p.authorName}</Td>
+            <Td>
+              <KindLabel kind={p.kind} />
+            </Td>
             <Td>
               <CodeTag code={p.category} />
             </Td>

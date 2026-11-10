@@ -1,12 +1,27 @@
 import { clubConfig } from "@/club.config";
 
+/** "€25", or "€12.50" when there are cents (pass cents: true to always show them). */
 export function formatMoney(cents: number, opts: { cents?: boolean } = {}) {
+  const showCents = opts.cents ?? cents % 100 !== 0;
   return new Intl.NumberFormat(clubConfig.locale, {
     style: "currency",
     currency: clubConfig.currency,
-    minimumFractionDigits: opts.cents ? 2 : 0,
-    maximumFractionDigits: opts.cents ? 2 : 0,
+    minimumFractionDigits: showCents ? 2 : 0,
+    maximumFractionDigits: showCents ? 2 : 0,
   }).format(cents / 100);
+}
+
+/**
+ * Parses a euro amount typed by a person: "15", "12.5", "12,50" or "1,250.75".
+ * Returns cents, or null if it isn't a valid amount with at most 2 decimals.
+ */
+export function parseEuros(input: string): number | null {
+  let v = input.trim().replace(/^€/, "").replace(/\s/g, "");
+  // A comma followed by 1–2 digits at the end is a decimal comma ("12,50").
+  if (/^\d+,\d{1,2}$/.test(v)) v = v.replace(",", ".");
+  else v = v.replace(/,(?=\d{3}(\D|$))/g, ""); // thousands separators
+  if (!/^\d+(\.\d{1,2})?$/.test(v)) return null;
+  return Math.round(Number(v) * 100);
 }
 
 const fmt = (options: Intl.DateTimeFormatOptions) =>

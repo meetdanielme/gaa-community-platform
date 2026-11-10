@@ -7,25 +7,29 @@ import { memberSummary } from "@/lib/members";
 import { roleLabels } from "@/lib/rules/roles";
 import { requireUser } from "@/lib/session";
 import { getFamily } from "@/server/profile";
-import { PlusIcon } from "@/components/icons";
+import { listMyUpcomingEvents } from "@/server/events";
+import { SignOutButton } from "@/components/app-shell";
+import { PlusIcon, SettingsIcon } from "@/components/icons";
+import { MyEventsList } from "../events/my-events";
 import { AccountSecurity } from "./account-security";
 import { EditContactButton } from "./edit-contact";
+import { ThemePicker } from "./theme-picker";
 
 export const metadata: Metadata = { title: "Profile" };
 
 export default async function ProfilePage() {
   const user = await requireUser();
-  const family = await getFamily(user.id);
+  const [family, upcoming] = await Promise.all([getFamily(user.id), listMyUpcomingEvents(user.id)]);
   const self = family.find((m) => m.relationship === "self");
   const linked = family.filter((m) => m.relationship !== "self");
 
   return (
     <>
-      <PageHeader title="Profile" />
+      <PageHeader title="Profile" action={<SignOutButton className="lg:hidden" />} />
       <PageBody className="grid gap-6 lg:grid-cols-[minmax(0,390px)_1fr]">
         <section className="flex flex-col gap-6">
           <Card className="flex flex-col gap-3">
-            <span className="grid size-18 place-items-center rounded-full bg-navy text-2xl font-semibold text-white">
+            <span className="grid size-18 place-items-center rounded-full bg-brand text-2xl font-semibold text-white">
               {initials(user.name)}
             </span>
             <h2 className="text-3xl font-bold tracking-tight text-navy">{user.name}</h2>
@@ -46,11 +50,36 @@ export default async function ProfilePage() {
           </Card>
 
           <Card className="flex flex-col gap-3">
+            <h2 className="text-xl font-bold">Your upcoming events</h2>
+            {upcoming.length > 0 ? (
+              <>
+                <MyEventsList items={upcoming.slice(0, 3)} inset />
+                {upcoming.length > 3 && (
+                  <LinkButton href="/events#your-events">See all {upcoming.length} events</LinkButton>
+                )}
+              </>
+            ) : (
+              <>
+                <p className="text-sm text-muted">You haven&apos;t signed up for any upcoming events yet.</p>
+                <LinkButton href="/events">Browse events</LinkButton>
+              </>
+            )}
+          </Card>
+
+          <Card className="flex flex-col gap-3">
             <h2 className="text-xl font-bold">Your donations</h2>
             <LinkButton href="/profile/donations">View donation history</LinkButton>
           </Card>
 
+          <ThemePicker />
+
           <AccountSecurity />
+
+          {user.isAdmin && (
+            <LinkButton href="/admin" className="lg:hidden">
+              <SettingsIcon className="size-5" /> Club admin
+            </LinkButton>
+          )}
         </section>
 
         <section className="flex flex-col gap-5">

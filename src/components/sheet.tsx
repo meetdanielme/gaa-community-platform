@@ -1,7 +1,10 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { createContext, useEffect, useRef, type ReactNode } from "react";
 import { BackIcon, CloseIcon } from "./icons";
+
+/** Lets content inside a sheet close it, e.g. a form once it has saved. */
+export const SheetContext = createContext<{ close: () => void } | null>(null);
 
 /**
  * A modal sheet: a bottom sheet on phones and a centred dialog on larger
@@ -44,7 +47,7 @@ export function Sheet({
         if (e.target === ref.current) onClose();
       }}
       aria-label={title}
-      className="m-0 mt-auto w-full max-w-none rounded-t-3xl bg-white p-0 text-ink shadow-2xl sm:m-auto sm:max-w-[440px] sm:rounded-3xl"
+      className="m-0 mt-auto w-full max-w-none rounded-t-3xl bg-surface p-0 text-ink shadow-2xl sm:m-auto sm:max-w-[440px] sm:rounded-3xl"
     >
       <div className="flex flex-col gap-4 p-6 pb-8">
         <div className="flex items-center gap-3">
@@ -68,7 +71,7 @@ export function Sheet({
             <CloseIcon />
           </button>
         </div>
-        {children}
+        <SheetContext value={{ close: onClose }}>{children}</SheetContext>
       </div>
     </dialog>
   );

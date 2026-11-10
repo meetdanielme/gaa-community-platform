@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "New post" };
 export default function NewPostPage() {
   return (
     <AdminPage title="New post" back={{ href: "/admin/posts", label: "Posts" }}>
-      <PostForm clubName={clubConfig.name} />
+      <PostForm author={clubConfig.postAuthor} />
     </AdminPage>
   );
 }

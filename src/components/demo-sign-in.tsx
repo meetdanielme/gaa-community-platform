@@ -44,7 +44,7 @@ export function DemoSignInButton({
       >
         {pending ? "Signing in…" : account.label}
       </Button>
-      {error && <p className="text-sm text-red-700">{error}</p>}
+      {error && <p className="text-sm text-red-700 dark:text-red-300">{error}</p>}
     </div>
   );
 }

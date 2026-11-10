@@ -182,18 +182,49 @@ describe("profile (BR01, BR05)", () => {
   it("pays an unpaid fee once", async () => {
     const family = await svc.profile.getFamily(evan.id);
     const sandu = family.find((m) => m.fullName === "Sandu Alam")!;
-    expect(sandu.fee?.status).toBe("unpaid");
+    expect(sandu.codes).toEqual(["hurling", "football"]);
+    expect(sandu.team).toBe("U18");
+    const fee = sandu.fees.find((f) => f.code === "football")!.fee!;
+    expect(fee.status).toBe("unpaid");
 
-    const declined = await svc.profile.payMembershipFee(evan, sandu.fee!.id, "demo_0002");
+    const declined = await svc.profile.payMembershipFee(evan, fee.id, "demo_0002");
     expect(declined).toMatchObject({ ok: true, status: "declined" });
 
-    const paid = await svc.profile.payMembershipFee(evan, sandu.fee!.id, "demo_4242");
+    const paid = await svc.profile.payMembershipFee(evan, fee.id, "demo_4242");
     expect(paid).toMatchObject({ ok: true, status: "succeeded" });
 
-    const again = await svc.profile.payMembershipFee(evan, sandu.fee!.id, "demo_4242");
+    const again = await svc.profile.payMembershipFee(evan, fee.id, "demo_4242");
     expect(again).toEqual({ ok: false, reason: "already_paid" });
   });
 
+
+  it("keeps a cancelled paid membership's fee as a record and flags it for review", async () => {
+    const emmanuella = (await svc.profile.getFamily(evan.id)).find((m) => m.fullName === "Emmanuella Alam")!;
+    expect(emmanuella.codes).toEqual(["camogie", "ladies_football"]);
+
+    const saved = await svc.profile.cancelMembership(evan.id, emmanuella.id, "camogie");
+    expect(saved?.cancelledPaid).toEqual([{ code: "camogie", status: "paid", amountCents: 12000 }]);
+    const after = await svc.profile.getManagedMember(evan.id, emmanuella.id);
+    expect(after?.codes).toEqual(["ladies_football"]);
+    expect(after?.cancelledFees.map((f) => [f.code, f.status])).toEqual([["camogie", "paid"]]);
+
+    // Cancelling an unpaid membership just removes it, with no alert.
+    const unpaid = await svc.profile.cancelMembership(evan.id, emmanuella.id, "ladies_football");
+    expect(unpaid?.cancelledPaid).toEqual([]);
+    expect((await svc.profile.getManagedMember(evan.id, emmanuella.id))?.fees).toEqual([]);
+
+    // Re-joining a paid code doesn't charge again.
+    await svc.profile.saveMember(evan.id, { ...emmanuella, codes: ["camogie"] });
+    const rejoined = await svc.profile.getManagedMember(evan.id, emmanuella.id);
+    expect(rejoined?.fees[0].fee?.status).toBe("paid");
+  });
+
+  it("lists the events the family is going to", async () => {
+    const mine = await svc.events.listMyUpcomingEvents(evan.id);
+    const culture = mine.find((m) => m.event.slug === "culture-night");
+    expect(culture?.going).toEqual(["You", "Emmanuella"]);
+    expect(mine.every((m) => m.event.startsAt > new Date())).toBe(true);
+  });
 
   it("hides other families' members", async () => {
     const family = await svc.profile.getFamily(evan.id);
@@ -309,10 +340,10 @@ describe("admin (club officers)", () => {
   it("records a cash membership payment", async () => {
     const family = await svc.profile.getFamily(evan.id);
     const daniel = family.find((m) => m.fullName === "Daniel Alam")!;
-    await adminSvc.members.setFeeStatus(admin, daniel.fee!.id, "paid");
+    await adminSvc.members.setFeeStatus(admin, daniel.fees[0].fee!.id, "paid");
     const after = await svc.profile.getManagedMember(evan.id, daniel.id);
-    expect(after?.fee?.status).toBe("paid");
-    expect(after?.fee?.paymentRef).toMatch(/^CASH-/);
+    expect(after?.fees[0].fee?.status).toBe("paid");
+    expect(after?.fees[0].fee?.paymentRef).toMatch(/^CASH-/);
   });
 
   it("creates, cancels and deletes events", async () => {
@@ -348,36 +379,47 @@ describe("admin (club officers)", () => {
     const actions = activity.map((a) => a.summary).join("\n");
     expect(actions).toMatch(/Resolved tied vote: "Fixing Roof"/);
     expect(actions).toMatch(/Recorded €.* — Golf classic/);
-    expect(activity.every((a) => a.actorName === "Aoife Byrne")).toBe(true);
+    // Families cancelling paid memberships are logged too, so the treasurer sees them.
+    expect(actions).toMatch(/Emmanuella Alam: cancelled paid .* Camogie .*Refund review needed/);
+    expect(activity.filter((a) => a.action !== "membership.cancel_paid").every((a) => a.actorName === "Aoife Byrne")).toBe(true);
   });
 
   it("lets families add, edit and remove members (but never their own profile)", async () => {
     const added = await svc.profile.saveMember(evan.id, {
       fullName: "Aoibhe Alam",
       relationship: "child",
-      code: "camogie",
-      team: "U12",
+      codes: ["camogie"],
+      dateOfBirth: "2015-02-01",
     });
-    expect((await svc.profile.getManagedMember(evan.id, added!.id))?.fee?.status).toBe("unpaid");
+    expect(added?.team).toBe("U12");
+    expect((await svc.profile.getManagedMember(evan.id, added!.id))?.fees[0].fee?.status).toBe("unpaid");
 
     const self = (await svc.profile.getFamily(evan.id)).find((m) => m.relationship === "self")!;
-    const sneaky = await svc.profile.saveMember(evan.id, { id: self.id, fullName: "X", relationship: "child", code: null, team: null });
+    const sneaky = await svc.profile.saveMember(evan.id, { id: self.id, fullName: "X", relationship: "child", codes: [], dateOfBirth: null });
     expect(sneaky).toMatchObject({ relationship: "self", fullName: "Evan Alam" });
     expect(await svc.profile.removeMember(evan.id, self.id)).toBeNull();
     expect(await svc.profile.removeMember(evan.id, added!.id)).not.toBeNull();
     // Another account can't touch Evan's family.
-    expect(await svc.profile.saveMember(admin.id, { id: added!.id, fullName: "X", relationship: "child", code: null, team: null })).toBeNull();
+    expect(await svc.profile.saveMember(admin.id, { id: added!.id, fullName: "X", relationship: "child", codes: [], dateOfBirth: null })).toBeNull();
   });
 
-  it("only charges membership to people who play a code", async () => {
+  it("charges one membership per code, and only to people who play", async () => {
     const self = (await svc.profile.getFamily(evan.id)).find((m) => m.relationship === "self")!;
-    expect(self.fee).toBeNull();
+    expect(self.fees).toEqual([]);
 
-    await svc.profile.saveMember(evan.id, { id: self.id, fullName: self.fullName, relationship: "self", code: "hurling", team: "Junior B" });
-    expect((await svc.profile.getManagedMember(evan.id, self.id))?.fee?.status).toBe("unpaid");
+    const base = { id: self.id, fullName: self.fullName, relationship: "self", dateOfBirth: "1985-06-01" };
+    const saved = await svc.profile.saveMember(evan.id, { ...base, codes: ["hurling", "football"] });
+    expect(saved?.team).toBe("Adult");
+    const playing = await svc.profile.getManagedMember(evan.id, self.id);
+    expect(playing?.fees.map((f) => [f.code, f.fee?.status])).toEqual([
+      ["hurling", "unpaid"],
+      ["football", "unpaid"],
+    ]);
 
-    await svc.profile.saveMember(evan.id, { id: self.id, fullName: self.fullName, relationship: "self", code: null, team: null });
-    expect((await svc.profile.getManagedMember(evan.id, self.id))?.fee).toBeNull();
+    await svc.profile.saveMember(evan.id, { ...base, codes: [] });
+    const stopped = await svc.profile.getManagedMember(evan.id, self.id);
+    expect(stopped?.fees).toEqual([]);
+    expect(stopped?.cancelledFees).toEqual([]);
   });
 
   it("daily job finds tomorrow's reminders and resets the demo", async () => {

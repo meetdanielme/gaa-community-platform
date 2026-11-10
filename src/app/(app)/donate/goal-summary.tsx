@@ -7,14 +7,14 @@ export function GoalSummary({
   goal,
   children,
 }: {
-  goal: { title: string; purpose: string; raisedCents: number; targetCents: number };
+  goal: { title: string; purpose: string | null; raisedCents: number; targetCents: number };
   children?: ReactNode;
 }) {
   const remaining = Math.max(0, goal.targetCents - goal.raisedCents);
   return (
     <Card className="flex flex-col gap-4">
       <h2 className="text-3xl font-bold tracking-tight text-navy">{goal.title}</h2>
-      <p>{goal.purpose}</p>
+      {goal.purpose && <p>{goal.purpose}</p>}
       <p className="flex items-baseline gap-4">
         <span className="text-3xl font-bold text-navy">{formatMoney(goal.raisedCents)}</span>
         <span className="text-sm text-muted">of {formatMoney(goal.targetCents)}</span>

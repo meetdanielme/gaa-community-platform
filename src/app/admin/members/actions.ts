@@ -33,9 +33,9 @@ export async function setFeeStatusAction(feeId: string, status: "paid" | "sponso
   refresh();
 }
 
-export async function createFeeAction(memberId: string) {
+export async function createFeeAction(memberId: string, code: string) {
   const admin = await requireAdmin();
-  await createFeeIfMissing(admin, z.string().uuid().parse(memberId));
+  await createFeeIfMissing(admin, z.string().uuid().parse(memberId), z.string().max(40).parse(code));
   refresh();
 }
 
@@ -49,7 +49,7 @@ export async function saveMemberForAccountAction(_: FormState, formData: FormDat
   if (!saved) return { ok: false, message: "That member isn't on this account." };
   await audit(db, admin, parsed.data.id ? "member.update" : "member.add", `${parsed.data.id ? "Updated" : "Added"} family member ${saved.fullName}`);
   refresh();
-  return { ok: true, message: "Saved." };
+  return { ok: true, message: saved.team ? `Saved. ${saved.fullName} is in the ${saved.team} team.` : "Saved." };
 }
 
 export async function removeMemberForAccountAction(userId: string, memberId: string) {

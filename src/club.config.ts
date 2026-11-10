@@ -21,6 +21,8 @@ export const clubConfig = {
   name: "Saints",
   fullName: "Saints GAA Club",
   tagline: "One club. Every generation.",
+  /** Every feed post is published under this name. */
+  postAuthor: "Saints Club",
   description:
     "The community platform for Saints GAA — hurling, football, camogie and ladies' football, together.",
   season: "2026/27",
@@ -43,8 +45,17 @@ export const clubConfig = {
   /** Public site address, used for share links and emails. */
   siteUrl: process.env.SITE_URL ?? "https://saintsgaa.social",
   codes,
-  /** Membership fee per member per season, in cents. */
+  /** Membership fee per code per season, in cents (two codes = two fees). */
   membershipFeeCents: 12000,
+  /** How many codes one person may play, e.g. hurling and football. */
+  maxCodesPerMember: 2,
+  /**
+   * Age-grade teams, by age reached during the season's first year (the GAA
+   * year-of-birth rule): someone who turns 11 or 12 in 2026 plays U12.
+   * Anyone older than the last grade plays Adult.
+   */
+  ageGrades: [8, 10, 12, 14, 16, 18, 20],
+  minPlayingAge: 4,
   /** Preset one-off donation amounts in cents. */
   donationPresetsCents: [1000, 2500, 5000],
   maxDonationCents: 100000,
@@ -54,6 +65,25 @@ export const clubConfig = {
    */
   demoMode: process.env.DEMO_MODE !== "false",
 } as const;
+
+/**
+ * Feed post types. Each has its own icon and colour so a match report never
+ * looks like a training notice. Admins pick one when publishing.
+ */
+export const postKinds = [
+  { id: "Club update", icon: "megaphone", colour: "#003660", tint: "#e1edf6" },
+  { id: "Match report", icon: "trophy", colour: "#17663a", tint: "#def5e6" },
+  { id: "Training notice", icon: "whistle", colour: "#8a4b00", tint: "#fdefd6" },
+  { id: "Goal update", icon: "heart", colour: "#a3214a", tint: "#fbe3ea" },
+  { id: "Behind the scenes", icon: "camera", colour: "#5b3d99", tint: "#ece6f8" },
+] as const;
+
+export type PostKindIcon = (typeof postKinds)[number]["icon"];
+
+/** Unknown types (e.g. typed before this list existed) fall back to a neutral style. */
+export function postKindStyle(kind: string) {
+  return postKinds.find((k) => k.id === kind) ?? { id: kind, icon: "megaphone" as const, colour: "#647482", tint: "#eef1f4" };
+}
 
 /** Labels for event categories: the four codes plus club-wide categories. */
 export const eventCategories: Record<string, string> = {

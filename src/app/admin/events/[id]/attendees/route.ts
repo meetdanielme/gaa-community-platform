@@ -9,9 +9,9 @@ export async function GET(_: Request, { params }: RouteContext<"/admin/events/[i
   if (!detail) return new Response("Not found", { status: 404 });
   return csvResponse(
     `${detail.event.slug}-responses.csv`,
-    ["Member", "Code", "Team", "Response", "Contact", "Email", "Phone", "Updated"],
+    ["Member", "Codes", "Team", "Response", "Contact", "Email", "Phone", "Updated"],
     detail.responses.map((r) => [
-      r.memberName, r.code, r.team, r.response === "going" ? "Going" : "Not going",
+      r.memberName, r.codes, r.team, r.response === "going" ? "Going" : "Not going",
       r.contactName, r.contactEmail, r.contactPhone, r.updatedAt.toISOString(),
     ]),
   );

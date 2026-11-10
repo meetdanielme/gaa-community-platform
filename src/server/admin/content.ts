@@ -1,17 +1,17 @@
 import { asc, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { event, eventResponse, member, post, user, type ScheduleItem } from "@/db/schema";
-import { clubConfig } from "@/club.config";
+import { clubConfig, codeLabel } from "@/club.config";
 import { formatLongDate, formatTime } from "@/lib/format";
 import { uniqueSlug } from "@/lib/slug";
 import type { CurrentUser } from "@/lib/session";
 import { audit } from "../audit";
 import { sendEmail } from "../email";
+import { teamFor } from "../profile";
 
 /* ------------------------------------------------------------------ Posts */
 
 export type PostInput = {
-  authorName: string;
   kind: string;
   category: string | null;
   title: string;
@@ -34,11 +34,11 @@ export async function savePost(actor: CurrentUser, input: PostInput & { id?: str
   return db.transaction(async (tx) => {
     if (input.id) {
       const { id, ...values } = input;
-      await tx.update(post).set(values).where(eq(post.id, id));
+      await tx.update(post).set({ ...values, authorName: clubConfig.postAuthor }).where(eq(post.id, id));
       await audit(tx, actor, "post.update", `Edited post "${input.title}"`);
       return id;
     }
-    const [created] = await tx.insert(post).values(input).returning();
+    const [created] = await tx.insert(post).values({ ...input, authorName: clubConfig.postAuthor }).returning();
     await audit(tx, actor, "post.publish", `Published post "${input.title}"`);
     return created.id;
   });
@@ -60,7 +60,7 @@ export type EventInput = {
   venue: string;
   imageUrl: string | null;
   headline: string;
-  description: string;
+  description: string | null;
   schedule: ScheduleItem[];
   goodToKnow: string | null;
   recap: string | null;
@@ -83,8 +83,9 @@ export async function getEventAdmin(id: string) {
   const responses = await db
     .select({
       memberName: member.fullName,
-      code: member.code,
-      team: member.team,
+      /** e.g. "hurling,football" */
+      codes: sql<string | null>`(select string_agg(ms.code, ',' order by ms.code) from membership ms where ms.member_id = ${member.id})`,
+      dateOfBirth: member.dateOfBirth,
       response: eventResponse.response,
       updatedAt: eventResponse.updatedAt,
       contactName: user.name,
@@ -96,7 +97,17 @@ export async function getEventAdmin(id: string) {
     .innerJoin(user, eq(member.managedByUserId, user.id))
     .where(eq(eventResponse.eventId, id))
     .orderBy(asc(eventResponse.response), asc(member.fullName));
-  return { event: e, responses };
+  return {
+    event: e,
+    responses: responses.map(({ codes: list, dateOfBirth, ...r }) => {
+      const playing = list ? list.split(",") : [];
+      return {
+        ...r,
+        codes: playing.map(codeLabel).join(" & "),
+        team: playing.length ? teamFor({ dateOfBirth }) : null,
+      };
+    }),
+  };
 }
 
 export async function saveEvent(actor: CurrentUser, input: EventInput & { id?: string }) {

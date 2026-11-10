@@ -1,12 +1,12 @@
 import { and, asc, eq, ilike, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { member, membershipFee, user } from "@/db/schema";
-import { clubConfig } from "@/club.config";
+import { clubConfig, codeLabel } from "@/club.config";
 import { serializeRoles, type Role } from "@/lib/rules/roles";
-import { requiresMembership } from "@/lib/rules/membership";
 import type { CurrentUser } from "@/lib/session";
 import { audit } from "../audit";
 import { receiptNumber } from "../payments";
+import { getFamily } from "../profile";
 
 export async function listAccounts(q?: string) {
   const search = q?.trim();
@@ -45,15 +45,7 @@ export async function listAccounts(q?: string) {
 export async function getAccount(userId: string) {
   const u = await db.query.user.findFirst({ where: eq(user.id, userId) });
   if (!u) return null;
-  const members = await db.query.member.findMany({
-    where: eq(member.managedByUserId, userId),
-    orderBy: asc(member.createdAt),
-    with: { fees: true },
-  });
-  return {
-    user: u,
-    members: members.map((m) => ({ ...m, fee: m.fees.find((f) => f.season === clubConfig.season) ?? null })),
-  };
+  return { user: u, members: await getFamily(userId) };
 }
 
 export async function updateAccountAccess(
@@ -95,19 +87,21 @@ export async function setFeeStatus(actor: CurrentUser, feeId: string, status: "p
         paymentRef: status === "paid" ? receiptNumber("CASH") : null,
       })
       .where(eq(membershipFee.id, feeId));
-    await audit(tx, actor, "fee.status", `${fee.member.fullName} ${fee.season} membership → ${status}`);
+    await audit(tx, actor, "fee.status", `${fee.member.fullName} ${fee.season} ${codeLabel(fee.code)} membership → ${status}`);
   });
 }
 
-export async function createFeeIfMissing(actor: CurrentUser, memberId: string) {
+/** Adds this season's fee for one code a member plays, if it's missing. */
+export async function createFeeIfMissing(actor: CurrentUser, memberId: string, code: string) {
   await db.transaction(async (tx) => {
-    const [m] = await tx.select().from(member).where(eq(member.id, memberId));
-    if (!m || !requiresMembership(m)) return;
+    const m = await tx.query.member.findFirst({ where: eq(member.id, memberId), with: { memberships: true } });
+    if (!m || !m.memberships.some((x) => x.code === code)) return;
     const inserted = await tx
       .insert(membershipFee)
-      .values({ memberId, season: clubConfig.season, amountCents: clubConfig.membershipFeeCents })
+      .values({ memberId, code, season: clubConfig.season, amountCents: clubConfig.membershipFeeCents })
       .onConflictDoNothing()
       .returning();
-    if (inserted.length) await audit(tx, actor, "fee.create", `Added ${clubConfig.season} membership for ${m.fullName}`);
+    if (inserted.length)
+      await audit(tx, actor, "fee.create", `Added ${clubConfig.season} ${codeLabel(code)} membership for ${m.fullName}`);
   });
 }

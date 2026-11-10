@@ -1,6 +1,7 @@
 import { relations, sql } from "drizzle-orm";
 import {
   boolean,
+  date,
   integer,
   jsonb,
   pgTable,
@@ -102,13 +103,30 @@ export const member = pgTable(
     fullName: text("full_name").notNull(),
     /** self | child | partner | sibling | other */
     relationship: text("relationship").notNull().default("child"),
-    /** hurling | football | camogie | ladies_football — null if not playing */
-    code: text("code"),
-    team: text("team"),
+    /** YYYY-MM-DD. Decides the member's age-grade team (see rules/membership). */
+    dateOfBirth: date("date_of_birth", { mode: "string" }),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
   (t) => [index("member_manager_idx").on(t.managedByUserId)],
+);
+
+/**
+ * A member registered to play one code. A person may play more than one,
+ * e.g. hurling and football, or camogie and ladies' football.
+ */
+export const membership = pgTable(
+  "membership",
+  {
+    id: id(),
+    memberId: text("member_id")
+      .notNull()
+      .references(() => member.id, { onDelete: "cascade" }),
+    /** hurling | football | camogie | ladies_football */
+    code: text("code").notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex("membership_member_code_uq").on(t.memberId, t.code)],
 );
 
 /** UC5 Pay membership fees */
@@ -119,6 +137,8 @@ export const membershipFee = pgTable(
     memberId: text("member_id")
       .notNull()
       .references(() => member.id, { onDelete: "cascade" }),
+    /** The code this fee covers: each membership has its own fee. */
+    code: text("code").notNull(),
     season: text("season").notNull(),
     amountCents: integer("amount_cents").notNull(),
     /** unpaid | pending | paid | sponsored */
@@ -128,7 +148,7 @@ export const membershipFee = pgTable(
     paidAt: timestamp("paid_at"),
     createdAt: createdAt(),
   },
-  (t) => [uniqueIndex("fee_member_season_uq").on(t.memberId, t.season)],
+  (t) => [uniqueIndex("fee_member_code_season_uq").on(t.memberId, t.code, t.season)],
 );
 
 /* -------------------------------------------------------------------------- */
@@ -166,7 +186,7 @@ export const event = pgTable("event", {
   venue: text("venue").notNull(),
   imageUrl: text("image_url"),
   headline: text("headline").notNull(),
-  description: text("description").notNull(),
+  description: text("description"),
   schedule: jsonb("schedule").$type<ScheduleItem[]>().notNull().default([]),
   goodToKnow: text("good_to_know"),
   recap: text("recap"),
@@ -221,8 +241,8 @@ export const goal = pgTable("goal", {
   id: id(),
   slug: text("slug").notNull().unique(),
   title: text("title").notNull(),
-  /** One-line purpose shown on cards */
-  purpose: text("purpose").notNull(),
+  /** One-line purpose shown on cards (optional) */
+  purpose: text("purpose"),
   headline: text("headline"),
   description: text("description"),
   targetCents: integer("target_cents").notNull(),
@@ -334,8 +354,13 @@ export const memberRelations = relations(member, ({ one, many }) => ({
     fields: [member.managedByUserId],
     references: [user.id],
   }),
+  memberships: many(membership),
   fees: many(membershipFee),
   responses: many(eventResponse),
+}));
+
+export const membershipRelations = relations(membership, ({ one }) => ({
+  member: one(member, { fields: [membership.memberId], references: [member.id] }),
 }));
 
 export const donationRelations = relations(donation, ({ one }) => ({

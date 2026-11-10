@@ -28,7 +28,7 @@ export async function GET(request: Request, { params }: RouteContext<"/events/[s
     `DTEND:${icsDate(end)}`,
     `SUMMARY:${escape(e.title)}`,
     `LOCATION:${escape(e.venue)}`,
-    `DESCRIPTION:${escape(`${e.headline}\n\n${e.description}\n\n${url}`)}`,
+    `DESCRIPTION:${escape([e.headline, e.description, url].filter(Boolean).join("\n\n"))}`,
     `URL:${url}`,
     e.status === "cancelled" ? "STATUS:CANCELLED" : "STATUS:CONFIRMED",
     "END:VEVENT",

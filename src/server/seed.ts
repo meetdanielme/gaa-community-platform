@@ -12,7 +12,7 @@ import * as data from "./demo-data";
 async function reset() {
   await db.execute(sql`
     truncate table audit_log, vote, voting_round, donation, goal,
-      event_reminder, event_response, event, post, membership_fee, member,
+      event_reminder, event_response, event, post, membership_fee, membership, member,
       session, account, verification, "user" cascade
   `);
 }
@@ -54,35 +54,45 @@ async function seed() {
   const evanId = await createUser({ ...data.demoUser, password: data.DEMO_PASSWORD });
   const adminId = await createUser({ ...data.demoAdmin, password: data.DEMO_PASSWORD, isAdmin: true });
   // Neither demo account plays, so they owe no membership themselves.
-  await db.insert(s.member).values([
-    { managedByUserId: adminId, fullName: data.demoAdmin.name, relationship: "self" },
-    { managedByUserId: evanId, fullName: data.demoUser.name, relationship: "self" },
-  ]);
-  for (const f of data.demoUser.family) {
+  const evanMembers = await db
+    .insert(s.member)
+    .values([
+      { managedByUserId: adminId, fullName: data.demoAdmin.name, relationship: "self" },
+      { managedByUserId: evanId, fullName: data.demoUser.name, relationship: "self" },
+    ])
+    .returning();
+  for (const { memberships, ...f } of data.demoUser.family) {
     const [m] = await db
       .insert(s.member)
-      .values({
-        managedByUserId: evanId,
-        fullName: f.fullName,
-        relationship: f.relationship,
-        code: f.code,
-        team: f.team,
-      })
+      .values({ managedByUserId: evanId, ...f })
       .returning();
-    await db.insert(s.membershipFee).values({
-      memberId: m.id,
-      season: clubConfig.season,
-      amountCents: clubConfig.membershipFeeCents,
-      status: f.fee,
-      paidAt: f.fee === "paid" ? new Date() : null,
-    });
+    evanMembers.push(m);
+    await db.insert(s.membership).values(memberships.map((ms) => ({ memberId: m.id, code: ms.code })));
+    await db.insert(s.membershipFee).values(
+      memberships.map((ms) => ({
+        memberId: m.id,
+        code: ms.code,
+        season: clubConfig.season,
+        amountCents: clubConfig.membershipFeeCents,
+        status: ms.fee,
+        paidAt: ms.fee === "paid" ? new Date() : null,
+      })),
+    );
   }
 
   // --- Feed ---------------------------------------------------------------
   await db.insert(s.post).values(data.posts);
 
   // --- Events -------------------------------------------------------------
-  await db.insert(s.event).values(data.events);
+  const events = await db.insert(s.event).values(data.events).returning();
+  await db.insert(s.eventResponse).values(
+    data.demoUser.going.map((g) => ({
+      eventId: events.find((e) => e.slug === g.slug)!.id,
+      memberId: evanMembers.find((m) => m.fullName === g.fullName && m.managedByUserId === evanId)!.id,
+      response: "going",
+      respondedByUserId: evanId,
+    })),
+  );
 
   // --- Fundraising --------------------------------------------------------
   const [lockers] = await db

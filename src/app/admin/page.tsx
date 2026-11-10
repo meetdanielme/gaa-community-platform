@@ -47,8 +47,8 @@ export default async function AdminDashboard() {
         <Stat label="Donations" value={formatMoney(d.donations.cents)} sub={`${d.donations.n} confirmed donations`} />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_1.2fr]">
-        <section className="flex flex-col gap-4 rounded-card bg-white p-5">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
+        <section className="flex flex-col gap-4 rounded-card bg-surface p-5">
           <h2 className="text-lg font-bold">Current goal</h2>
           {d.activeGoal ? (
             <>
@@ -67,7 +67,7 @@ export default async function AdminDashboard() {
           <p className="text-sm text-muted">{d.upcomingEvents} upcoming events.</p>
         </section>
 
-        <section className="rounded-card bg-white p-5">
+        <section className="rounded-card bg-surface p-5">
           <h2 className="text-lg font-bold">Recent admin activity</h2>
           {d.activity.length === 0 ? (
             <p className="mt-4 text-sm text-muted">No activity yet.</p>
