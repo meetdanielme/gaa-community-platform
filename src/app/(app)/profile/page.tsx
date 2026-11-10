@@ -34,7 +34,6 @@ export default async function ProfilePage() {
                 <Tag key={r}>{roleLabels[r]}</Tag>
               ))}
             </div>
-            <p className="text-sm text-muted">Together for the {clubConfig.season} season</p>
             {self && <p className="text-sm text-muted">{memberSummary(self)}</p>}
           </Card>
 
@@ -46,17 +45,9 @@ export default async function ProfilePage() {
             <EditContactButton user={user} />
           </Card>
 
-          {user.helpsWith && (
-            <Card className="flex flex-col gap-2">
-              <h2 className="text-xl font-bold">How you help</h2>
-              <p>{user.helpsWith}</p>
-            </Card>
-          )}
-
           <Card className="flex flex-col gap-3">
-            <h2 className="text-xl font-bold">Your giving</h2>
-            <p className="text-sm text-muted">Donations you&apos;ve made and their receipts.</p>
-            <LinkButton href="/profile/giving">View giving history</LinkButton>
+            <h2 className="text-xl font-bold">Your donations</h2>
+            <LinkButton href="/profile/donations">View donation history</LinkButton>
           </Card>
 
           <AccountSecurity />

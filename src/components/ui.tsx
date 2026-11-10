@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
+import { codeColours, codeLabel } from "@/club.config";
 
 /* Buttons — Figma "Saints Hi-fi / Button / primary | secondary | gold" */
 
@@ -59,6 +60,29 @@ export function Tag({ children, className = "" }: { children: ReactNode; classNa
     <span
       className={`inline-flex items-center rounded-lg bg-navy px-2.5 py-1.5 text-xs font-semibold tracking-wide text-white uppercase ${className}`}
     >
+      {children}
+    </span>
+  );
+}
+
+/** Which code (or club-wide category) something belongs to: a coloured pill. */
+export function CodeTag({ code, className = "" }: { code: string | null | undefined; className?: string }) {
+  const { colour, tint } = codeColours(code);
+  return (
+    <span
+      className={`inline-flex w-fit items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${className}`}
+      style={{ color: colour, backgroundColor: tint }}
+    >
+      <span aria-hidden className="size-1.5 rounded-full" style={{ backgroundColor: colour }} />
+      {codeLabel(code)}
+    </span>
+  );
+}
+
+/** What kind of content something is ("Club update", "Match report"): an outlined label. */
+export function KindLabel({ children }: { children: ReactNode }) {
+  return (
+    <span className="inline-flex w-fit items-center rounded-md border border-[#d5dee5] px-2 py-0.5 text-xs font-medium text-muted">
       {children}
     </span>
   );

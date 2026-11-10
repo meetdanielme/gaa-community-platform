@@ -43,7 +43,7 @@ export default async function MemberPage({ params }: PageProps<"/profile/members
             rows={[
               { label: "Code", value: m.code ? codeLabel(m.code) : "Not playing" },
               { label: "Team", value: m.team ?? "—" },
-              { label: "Status", value: m.fee ? feeStatusLabels[m.fee.status] : "No membership record" },
+              { label: "Membership", value: m.fee ? feeStatusLabels[m.fee.status] : m.code ? "Not set up yet" : "No fee (not playing)" },
               ...(m.fee ? [{ label: "Membership fee", value: formatMoney(m.fee.amountCents) }] : []),
               ...(m.fee?.paymentRef ? [{ label: "Receipt", value: m.fee.paymentRef }] : []),
             ]}
@@ -61,8 +61,7 @@ export default async function MemberPage({ params }: PageProps<"/profile/members
         </Card>
 
         <div>
-          <h3 className="text-xl font-bold">A family, connected</h3>
-          <p className="mt-3 max-w-md">
+          <p className="max-w-md text-muted">
             {isSelf
               ? "This is your own member profile. Keep your code and team up to date so you see the right events."
               : `${firstName} manages this linked member profile and can respond to events and pay membership on their behalf.`}

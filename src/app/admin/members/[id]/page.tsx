@@ -74,7 +74,7 @@ export default async function AdminAccountPage({ params }: PageProps<"/admin/mem
                     {feeStatusLabels[m.fee.status]} · {formatMoney(m.fee.amountCents)}
                   </Pill>
                 ) : (
-                  <Pill>No membership</Pill>
+                  <Pill>{m.code ? "No membership" : "Not playing · no fee"}</Pill>
                 )}
               </div>
               <div className="flex flex-wrap gap-2">
@@ -99,7 +99,7 @@ export default async function AdminAccountPage({ params }: PageProps<"/admin/mem
                     </Button>
                   </form>
                 )}
-                {!m.fee && (
+                {!m.fee && m.code && (
                   <form action={createFeeAction.bind(null, m.id)}>
                     <Button type="submit" size="sm">
                       Add {clubConfig.season} membership

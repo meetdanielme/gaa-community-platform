@@ -94,3 +94,24 @@ export const DownloadIcon = (p: IconProps) => (
     <path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19.5h14" />
   </Icon>
 );
+export const DashboardIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <rect x="3.5" y="3.5" width="7" height="8" rx="1.5" />
+    <rect x="13.5" y="3.5" width="7" height="5" rx="1.5" />
+    <rect x="13.5" y="11.5" width="7" height="9" rx="1.5" />
+    <rect x="3.5" y="14.5" width="7" height="6" rx="1.5" />
+  </Icon>
+);
+export const PeopleIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <circle cx="9" cy="8" r="3.25" />
+    <path d="M3 19.5c.6-3 3-4.75 6-4.75s5.4 1.75 6 4.75" />
+    <path d="M15.5 4.9a3.25 3.25 0 0 1 0 6.2M17.5 14.9c1.8.6 3.1 2.2 3.5 4.6" />
+  </Icon>
+);
+export const ReceiptIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M5.5 3.5h13v17l-2.2-1.5-2.1 1.5-2.2-1.5-2.1 1.5-2.2-1.5-2.2 1.5Z" />
+    <path d="M9 8h6M9 11.5h6M9 15h3.5" />
+  </Icon>
+);

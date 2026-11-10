@@ -24,7 +24,6 @@ async function createUser(input: {
   phone?: string;
   eircode?: string;
   roles: string;
-  helpsWith?: string;
   isAdmin?: boolean;
 }) {
   const id = crypto.randomUUID();
@@ -36,7 +35,6 @@ async function createUser(input: {
     phone: input.phone,
     eircode: input.eircode,
     roles: input.roles,
-    helpsWith: input.helpsWith,
     isAdmin: input.isAdmin ?? false,
   });
   if (input.password) {
@@ -55,28 +53,11 @@ async function seed() {
   // --- Demo family --------------------------------------------------------
   const evanId = await createUser({ ...data.demoUser, password: data.DEMO_PASSWORD });
   const adminId = await createUser({ ...data.demoAdmin, password: data.DEMO_PASSWORD, isAdmin: true });
-  const [adminSelf] = await db
-    .insert(s.member)
-    .values({ managedByUserId: adminId, fullName: data.demoAdmin.name, relationship: "self" })
-    .returning();
-  await db.insert(s.membershipFee).values({
-    memberId: adminSelf.id,
-    season: clubConfig.season,
-    amountCents: clubConfig.membershipFeeCents,
-    status: "paid",
-    paidAt: new Date(),
-  });
-  const [evanSelf] = await db
-    .insert(s.member)
-    .values({ managedByUserId: evanId, fullName: data.demoUser.name, relationship: "self" })
-    .returning();
-  await db.insert(s.membershipFee).values({
-    memberId: evanSelf.id,
-    season: clubConfig.season,
-    amountCents: clubConfig.membershipFeeCents,
-    status: "paid",
-    paidAt: new Date(),
-  });
+  // Neither demo account plays, so they owe no membership themselves.
+  await db.insert(s.member).values([
+    { managedByUserId: adminId, fullName: data.demoAdmin.name, relationship: "self" },
+    { managedByUserId: evanId, fullName: data.demoUser.name, relationship: "self" },
+  ]);
   for (const f of data.demoUser.family) {
     const [m] = await db
       .insert(s.member)

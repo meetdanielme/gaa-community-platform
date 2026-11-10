@@ -12,15 +12,15 @@ It started as Group 16's design project for **IS2204 Visual Thinking for Systems
 
 | | Feature | Use case |
 | --- | --- | --- |
-| 📰 | **Feed** — club updates from all four codes | UC2 View club updates and events |
+| 📰 | **Feed** — club updates from all four codes, filterable by code | UC2 View club updates and events |
 | 📅 | **Events** — calendar filtered by code, event details and schedules, reminders, share links | UC2 |
 | ✅ | **Respond** for yourself or any family member you manage, with capacity and deadline checks | UC3 Respond to event invitations |
-| 💳 | **Membership fees** per member per season (demo payments) | UC5 Pay membership fees |
+| 💳 | **Membership fees** per playing member per season (demo payments) | UC5 Pay membership fees |
 | 💛 | **Donate** to the club's one active goal, with a transparent cost breakdown | UC6 Make a donation |
 | 🗳️ | **Vote** for the next goal — one member, one vote; the top goal becomes active when the current one is funded | UC7 Vote for next donation goal |
 | 👪 | **Profiles** — contact details; add, edit and remove linked family members | UC1 Maintain member and family profile |
 | 🔗 | **Share** goals and events; **add events to your calendar** (.ics) | Share fundraising goal details |
-| 🧾 | **Your giving** — donation history with receipts | UC6 |
+| 🧾 | **Your donations** — donation history with receipts | UC6 |
 | 🔐 | **Account** — change or reset your password, delete your account (GDPR) | — |
 
 ### For club officers (`/admin`)

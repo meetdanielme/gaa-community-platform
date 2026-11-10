@@ -44,7 +44,7 @@ export default async function AdminDashboard() {
           value={formatMoney(d.fees.outstanding.cents)}
           sub={`${d.fees.outstanding.n} members`}
         />
-        <Stat label="Online donations" value={formatMoney(d.donations.cents)} sub={`${d.donations.n} gifts`} />
+        <Stat label="Donations" value={formatMoney(d.donations.cents)} sub={`${d.donations.n} confirmed donations`} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_1.2fr]">
@@ -69,7 +69,6 @@ export default async function AdminDashboard() {
 
         <section className="rounded-card bg-white p-5">
           <h2 className="text-lg font-bold">Recent admin activity</h2>
-          <p className="text-xs text-muted">Every change made in the admin area is recorded here for transparency.</p>
           {d.activity.length === 0 ? (
             <p className="mt-4 text-sm text-muted">No activity yet.</p>
           ) : (

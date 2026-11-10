@@ -19,7 +19,6 @@ export default async function AdminGoalsPage() {
   return (
     <AdminPage
       title="Fundraising"
-      description="One goal is funded at a time. Members vote on which proposal comes next; the top vote becomes active automatically when the current goal is funded."
       actions={
         <LinkButton href="/admin/goals/new" variant="primary" size="sm">
           Propose a goal
@@ -61,7 +60,10 @@ export default async function AdminGoalsPage() {
       )}
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-xl font-bold">On the ballot {round ? "· voting open" : "· voting closed"}</h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-xl font-bold">Next donation goal vote</h2>
+          {round ? <Pill tone="green">Voting open</Pill> : <Pill>Voting closed</Pill>}
+        </div>
         <Table head={["Proposal", "Target", "Votes", ""]} empty="No proposals. Members can't vote until you propose one.">
           {proposed.map((g) => (
             <tr key={g.id}>

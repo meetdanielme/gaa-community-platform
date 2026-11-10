@@ -39,8 +39,6 @@ export const user = pgTable("user", {
   eircode: text("eircode"),
   /** Comma-separated actor roles: player, family_supporter */
   roles: text("roles").notNull().default("family_supporter"),
-  /** How this person helps the club, e.g. "Carpooling · First aid" (club records) */
-  helpsWith: text("helps_with"),
   /** Club officer with access to the admin area. Never settable by users. */
   isAdmin: boolean("is_admin").notNull().default(false),
 });

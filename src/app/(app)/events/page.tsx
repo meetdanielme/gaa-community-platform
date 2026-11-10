@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { codeLabel, codes, eventCategories } from "@/club.config";
 import { FilterIcon } from "@/components/icons";
 import { PageBody, PageHeader } from "@/components/page-header";
-import { Tag, buttonClass } from "@/components/ui";
+import { CodeTag, buttonClass } from "@/components/ui";
 import { formatDayMonth, formatTime, formatWeekday } from "@/lib/format";
 import { listEvents, type ClubEvent } from "@/server/events";
 
@@ -51,9 +51,11 @@ function EventCard({ e, past }: { e: ClubEvent; past?: boolean }) {
           <Image src={e.imageUrl} unoptimized={!e.imageUrl.startsWith("/")} alt="" fill sizes="(min-width: 1024px) 30vw, 100vw" className="object-cover" />
         </div>
       )}
-      <div className="flex items-center gap-3">
-        <Tag>{formatDayMonth(e.startsAt)}</Tag>
-        <span className="text-xs font-semibold tracking-wide text-muted uppercase">{codeLabel(e.category)}</span>
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="rounded-lg bg-navy px-2.5 py-1 text-xs font-bold tracking-wide text-white">
+          {formatDayMonth(e.startsAt)}
+        </span>
+        <CodeTag code={e.category} />
         {e.status === "cancelled" && <span className="text-xs font-semibold text-red-700 uppercase">Cancelled</span>}
       </div>
       <h2 className="text-xl font-bold tracking-tight">{e.title}</h2>
@@ -78,16 +80,14 @@ export default async function EventsPage({ searchParams }: PageProps<"/events">)
     <>
       <PageHeader title="Events" action={<EventFilter active={category} />} />
       <PageBody>
-        <h2 className="text-xl font-bold">{category ? `${codeLabel(category)} events` : "Your club calendar"}</h2>
-        <p className="mt-2 mb-6 text-sm text-muted">
-          {category ? (
-            <Link href="/events" className="font-semibold text-navy hover:underline">
+        <div className="mb-6 flex flex-wrap items-center gap-3">
+          <h2 className="text-xl font-bold">{category ? `${codeLabel(category)} events` : "Upcoming events"}</h2>
+          {category && (
+            <Link href="/events" className="text-sm font-semibold text-navy hover:underline">
               Show all codes
             </Link>
-          ) : (
-            "Across all four codes. Everyone belongs."
           )}
-        </p>
+        </div>
 
         {upcoming.length === 0 && past.length === 0 && (
           <p className="rounded-card bg-white p-8 text-center text-muted">No events match this filter yet.</p>
@@ -101,7 +101,7 @@ export default async function EventsPage({ searchParams }: PageProps<"/events">)
 
         {past.length > 0 && (
           <>
-            <h2 className="mt-10 mb-4 text-xl font-bold">Recently</h2>
+            <h2 className="mt-10 mb-4 text-xl font-bold">Past events</h2>
             <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
               {past.map((e) => (
                 <EventCard key={e.id} e={e} past />

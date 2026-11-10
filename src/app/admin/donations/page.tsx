@@ -25,7 +25,6 @@ export default async function AdminDonationsPage({ searchParams }: PageProps<"/a
   return (
     <AdminPage
       title="Donations"
-      description="Every online donation attempt. Donor details are visible to club admins only."
       actions={
         <a href={`/admin/donations/export?${query}`} className={buttonClass("secondary", "", "sm")}>
           <DownloadIcon className="size-4" /> Export CSV
@@ -34,7 +33,7 @@ export default async function AdminDonationsPage({ searchParams }: PageProps<"/a
     >
       <div className="grid gap-4 sm:grid-cols-2">
         <Stat label="Confirmed total" value={formatMoney(totalCents, { cents: totalCents % 100 !== 0 })} />
-        <Stat label="Confirmed gifts" value={count} />
+        <Stat label="Confirmed donations" value={count} />
       </div>
       <form className="flex flex-wrap gap-2">
         <Select name="goal" defaultValue={goalId ?? ""} className="w-auto" aria-label="Goal">

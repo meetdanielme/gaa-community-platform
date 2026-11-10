@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { member, membershipFee, user } from "@/db/schema";
 import { clubConfig } from "@/club.config";
 import { serializeRoles, type Role } from "@/lib/rules/roles";
+import { requiresMembership } from "@/lib/rules/membership";
 import type { CurrentUser } from "@/lib/session";
 import { audit } from "../audit";
 import { receiptNumber } from "../payments";
@@ -101,7 +102,7 @@ export async function setFeeStatus(actor: CurrentUser, feeId: string, status: "p
 export async function createFeeIfMissing(actor: CurrentUser, memberId: string) {
   await db.transaction(async (tx) => {
     const [m] = await tx.select().from(member).where(eq(member.id, memberId));
-    if (!m) return;
+    if (!m || !requiresMembership(m)) return;
     const inserted = await tx
       .insert(membershipFee)
       .values({ memberId, season: clubConfig.season, amountCents: clubConfig.membershipFeeCents })

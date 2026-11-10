@@ -4,15 +4,23 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { Wordmark } from "@/components/app-shell";
-import { BackIcon } from "@/components/icons";
+import {
+  BackIcon,
+  CalendarIcon,
+  DashboardIcon,
+  FeedIcon,
+  HeartIcon,
+  PeopleIcon,
+  ReceiptIcon,
+} from "@/components/icons";
 
 const nav = [
-  { href: "/admin", label: "Dashboard" },
-  { href: "/admin/posts", label: "Posts" },
-  { href: "/admin/events", label: "Events" },
-  { href: "/admin/goals", label: "Fundraising" },
-  { href: "/admin/donations", label: "Donations" },
-  { href: "/admin/members", label: "Members" },
+  { href: "/admin", label: "Dashboard", Icon: DashboardIcon },
+  { href: "/admin/posts", label: "Posts", Icon: FeedIcon },
+  { href: "/admin/events", label: "Events", Icon: CalendarIcon },
+  { href: "/admin/goals", label: "Fundraising", Icon: HeartIcon },
+  { href: "/admin/donations", label: "Donations", Icon: ReceiptIcon },
+  { href: "/admin/members", label: "Members", Icon: PeopleIcon },
 ];
 
 export function AdminShell({ children }: { children: ReactNode }) {
@@ -31,8 +39,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
               key={n.href}
               href={n.href}
               aria-current={active(n.href) ? "page" : undefined}
-              className={`rounded-full px-4 py-2.5 font-semibold transition hover:bg-white/10 ${active(n.href) ? "bg-white/15" : ""}`}
+              className={`flex items-center gap-3 rounded-full px-4 py-2.5 font-semibold transition hover:bg-white/10 ${active(n.href) ? "bg-white/15" : ""}`}
             >
+              <n.Icon className="size-5 shrink-0" />
               {n.label}
             </Link>
           ))}
@@ -52,8 +61,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
             key={n.href}
             href={n.href}
             aria-current={active(n.href) ? "page" : undefined}
-            className={`shrink-0 rounded-full px-3 py-2 text-sm font-semibold text-white ${active(n.href) ? "bg-white/15" : ""}`}
+            className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-sm font-semibold text-white ${active(n.href) ? "bg-white/15" : ""}`}
           >
+            <n.Icon className="size-4" />
             {n.label}
           </Link>
         ))}

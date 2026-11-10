@@ -23,11 +23,7 @@ export default async function DonatePage() {
       <PageHeader title="Donate" />
       <PageBody className="grid gap-8 lg:grid-cols-[minmax(0,400px)_1fr]">
         <section className="flex flex-col gap-6">
-          <p className="text-3xl leading-tight font-bold tracking-tight">
-            Small gifts.
-            <br />
-            Lasting change.
-          </p>
+          <h2 className="text-2xl font-bold tracking-tight">Current donation goal</h2>
 
           {overview.active ? (
             <GoalSummary goal={overview.active}>
@@ -67,10 +63,12 @@ export default async function DonatePage() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-bold tracking-tight">You choose what&apos;s next</h2>
-          <p className="mt-3 mb-6 max-w-sm text-sm text-muted">
-            One member, one vote. Change your choice any time while this round is open.
-          </p>
+          <div className="mb-6 flex flex-wrap items-center gap-3">
+            <h2 className="text-2xl font-bold tracking-tight">Vote for next goal</h2>
+            {overview.round && (
+              <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800">Voting open</span>
+            )}
+          </div>
           {overview.round ? (
             <VoteList
               candidates={overview.candidates.map((c) => ({

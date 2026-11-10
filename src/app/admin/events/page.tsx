@@ -1,7 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { codeLabel } from "@/club.config";
-import { LinkButton } from "@/components/ui";
+import { CodeTag, LinkButton } from "@/components/ui";
 import { formatLongDate, formatTime } from "@/lib/format";
 import { listEventsAdmin } from "@/server/admin/content";
 import { AdminPage, Pill, Table, Td } from "../ui";
@@ -14,7 +13,6 @@ export default async function AdminEventsPage() {
   return (
     <AdminPage
       title="Events"
-      description="Club events across all four codes. Members respond for themselves and their families."
       actions={
         <LinkButton href="/admin/events/new" variant="primary" size="sm">
           New event
@@ -33,7 +31,9 @@ export default async function AdminEventsPage() {
             <Td className="whitespace-nowrap">
               {formatLongDate(e.startsAt)}, {formatTime(e.startsAt)}
             </Td>
-            <Td>{codeLabel(e.category)}</Td>
+            <Td>
+              <CodeTag code={e.category} />
+            </Td>
             <Td>
               {going}
               {e.capacity ? ` / ${e.capacity}` : ""}

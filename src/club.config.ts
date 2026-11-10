@@ -2,16 +2,17 @@
  * White-label club configuration.
  *
  * Everything that makes this deployment "Saints" lives here. To run the
- * platform for another club, change these values (and the seed data in
- * `scripts/seed-data.ts`) — no component should hard-code the club's name,
- * colours or codes.
+ * platform for another club, change these values (and the demo content in
+ * `src/server/demo-data.ts`) — no component should hard-code the club's
+ * name, colours or codes.
  */
 
+/** Each code has its own tag colour (text on tint) so they're easy to tell apart. */
 export const codes = [
-  { id: "hurling", label: "Hurling" },
-  { id: "football", label: "Gaelic Football" },
-  { id: "camogie", label: "Camogie" },
-  { id: "ladies_football", label: "Ladies' Gaelic Football" },
+  { id: "hurling", label: "Hurling", colour: "#1e4fa3", tint: "#e3ecfb" },
+  { id: "football", label: "Gaelic Football", colour: "#17663a", tint: "#def5e6" },
+  { id: "camogie", label: "Camogie", colour: "#7a2a9c", tint: "#f2e5f9" },
+  { id: "ladies_football", label: "Ladies' Gaelic Football", colour: "#a3214a", tint: "#fbe3ea" },
 ] as const;
 
 export type CodeId = (typeof codes)[number]["id"];
@@ -54,6 +55,16 @@ export const eventCategories: Record<string, string> = {
   social: "Social",
   all: "All codes",
 };
+
+const categoryColours: Record<string, { colour: string; tint: string }> = {
+  ...Object.fromEntries(codes.map((c) => [c.id, { colour: c.colour, tint: c.tint }])),
+  social: { colour: "#8a4b00", tint: "#fdefd6" },
+  all: { colour: "#003660", tint: "#e8eff3" },
+};
+
+export function codeColours(id: string | null | undefined) {
+  return categoryColours[id ?? "all"] ?? categoryColours.all;
+}
 
 export function codeLabel(id: string | null | undefined) {
   if (!id) return "All codes";

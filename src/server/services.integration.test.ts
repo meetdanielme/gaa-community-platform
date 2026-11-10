@@ -44,7 +44,6 @@ beforeAll(async () => {
     email: u.email,
     phone: u.phone,
     eircode: u.eircode,
-    helpsWith: u.helpsWith,
     roles: ["family_supporter"],
     isAdmin: false,
   };
@@ -368,6 +367,17 @@ describe("admin (club officers)", () => {
     expect(await svc.profile.removeMember(evan.id, added!.id)).not.toBeNull();
     // Another account can't touch Evan's family.
     expect(await svc.profile.saveMember(admin.id, { id: added!.id, fullName: "X", relationship: "child", code: null, team: null })).toBeNull();
+  });
+
+  it("only charges membership to people who play a code", async () => {
+    const self = (await svc.profile.getFamily(evan.id)).find((m) => m.relationship === "self")!;
+    expect(self.fee).toBeNull();
+
+    await svc.profile.saveMember(evan.id, { id: self.id, fullName: self.fullName, relationship: "self", code: "hurling", team: "Junior B" });
+    expect((await svc.profile.getManagedMember(evan.id, self.id))?.fee?.status).toBe("unpaid");
+
+    await svc.profile.saveMember(evan.id, { id: self.id, fullName: self.fullName, relationship: "self", code: null, team: null });
+    expect((await svc.profile.getManagedMember(evan.id, self.id))?.fee).toBeNull();
   });
 
   it("daily job finds tomorrow's reminders and resets the demo", async () => {

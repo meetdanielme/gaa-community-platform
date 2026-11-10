@@ -15,7 +15,7 @@ export default async function AdminMembersPage({ searchParams }: PageProps<"/adm
   const accounts = await listAccounts(query);
 
   return (
-    <AdminPage title="Members" description="Accounts and the family members each one manages.">
+    <AdminPage title="Members">
       <form className="flex max-w-lg gap-2" role="search">
         <Input name="q" defaultValue={query} placeholder="Search by name or email" aria-label="Search members" />
         <Button type="submit" size="sm" className="shrink-0">

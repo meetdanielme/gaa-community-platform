@@ -30,6 +30,7 @@ export function VoteList({
   canVote: boolean;
 }) {
   const [step, setStep] = useState<Step | null>(null);
+  const totalVotes = candidates.reduce((n, c) => n + c.votes, 0);
   const [pending, startTransition] = useTransition();
 
   function confirm(goal: Candidate) {
@@ -44,6 +45,7 @@ export function VoteList({
       <ul className="flex flex-col gap-4">
         {candidates.map((c) => {
           const mine = c.id === myVoteGoalId;
+          const share = totalVotes ? Math.round((c.votes / totalVotes) * 100) : 0;
           return (
             <li
               key={c.id}
@@ -56,12 +58,17 @@ export function VoteList({
                 <p className="mt-1 text-xs text-muted">
                   Target {formatMoney(c.targetCents)} · {c.purpose}
                 </p>
+                <div className="mt-3 flex items-center gap-3">
+                  <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-pale" aria-hidden>
+                    <div className="h-full rounded-full bg-navy" style={{ width: `${share}%` }} />
+                  </div>
+                  <p className="shrink-0 text-sm text-muted">
+                    <span className="font-bold text-navy">{c.votes}</span> {c.votes === 1 ? "vote" : "votes"} · {share}%
+                  </p>
+                </div>
               </div>
-              <p className="w-14 text-center text-xl font-bold text-navy" aria-label={`${c.votes} votes`}>
-                {c.votes}
-              </p>
               {mine ? (
-                <span className="flex min-h-11 items-center gap-1.5 rounded-2xl bg-navy px-4 text-sm font-semibold text-white">
+                <span className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-2xl bg-navy px-4 text-sm font-semibold text-white">
                   <CheckIcon className="size-4" /> Your vote
                 </span>
               ) : (
@@ -71,15 +78,16 @@ export function VoteList({
                   size="sm"
                   className="shrink-0"
                 >
-                  <span>
-                    Vote<span className="hidden sm:inline"> for this goal</span>
-                  </span>
+                  Vote
                 </Button>
               )}
             </li>
           );
         })}
       </ul>
+      <p className="mt-3 text-sm text-muted">
+        {totalVotes} {totalVotes === 1 ? "member has" : "members have"} voted in this round.
+      </p>
       {!canVote && (
         <p className="mt-4 text-sm text-muted">Voting is open to players and family supporters.</p>
       )}

@@ -13,12 +13,12 @@ const features = [
     body: "Club updates, match reports and events from hurling, football, camogie and ladies' football, all in one place.",
   },
   {
-    title: "Your family, connected",
+    title: "Family profiles",
     body: "Manage linked profiles, respond to events for your children and pay membership fees.",
   },
   {
-    title: "You choose what's next",
-    body: "See exactly where donations go and vote on the club's next fundraising goal. One member, one vote.",
+    title: "Donations and voting",
+    body: "See exactly where donations go and vote on the club's next fundraising goal.",
   },
 ];
 
@@ -41,9 +41,7 @@ export default async function LandingPage() {
               {clubConfig.fullName} · {clubConfig.season}
             </p>
             <h1 className="text-5xl leading-[1.05] font-bold tracking-tight text-ink sm:text-6xl">
-              One club.
-              <br />
-              Every generation.
+              {clubConfig.tagline}
             </h1>
             <p className="max-w-md text-lg text-muted">{clubConfig.description}</p>
             {clubConfig.demoMode ? (

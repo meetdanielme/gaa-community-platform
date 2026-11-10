@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
-import { Card, ProgressBar, Tag } from "@/components/ui";
+import { Card, ProgressBar } from "@/components/ui";
 import { formatMoney } from "@/lib/format";
 
-/** The current goal card: Figma "OUR SHARED FUTURE" block. */
+/** The current goal card: title, purpose and progress. */
 export function GoalSummary({
   goal,
   children,
@@ -13,9 +13,6 @@ export function GoalSummary({
   const remaining = Math.max(0, goal.targetCents - goal.raisedCents);
   return (
     <Card className="flex flex-col gap-4">
-      <div>
-        <Tag>Our shared future</Tag>
-      </div>
       <h2 className="text-3xl font-bold tracking-tight text-navy">{goal.title}</h2>
       <p>{goal.purpose}</p>
       <p className="flex items-baseline gap-4">

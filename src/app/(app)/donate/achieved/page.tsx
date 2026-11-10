@@ -20,17 +20,14 @@ export default async function GoalAchievedPage() {
       <PageHeader title="Next club goal" backHref="/donate" />
       <PageBody className="flex max-w-3xl flex-col gap-6">
         <div>
-          <Tag>Funded together</Tag>
+          <Tag>Funded</Tag>
         </div>
-        <h2 className="text-3xl leading-tight font-bold tracking-tight">
-          {funded.title}
-          <br />A goal, achieved.
-        </h2>
+        <h2 className="text-3xl leading-tight font-bold tracking-tight">{funded.title} is fully funded</h2>
         <p className="max-w-md">
-          {formatMoney(funded.raisedCents)} of {formatMoney(funded.targetCents)} raised. Thank you for making {funded.title.toLowerCase()} possible across all four codes.
+          {formatMoney(funded.raisedCents)} of {formatMoney(funded.targetCents)} raised.
         </p>
         <hr className="border-ink/10" />
-        <h3 className="text-xl font-bold">Next, chosen by you</h3>
+        <h3 className="text-xl font-bold">Next goal</h3>
         {next ? (
           <>
             <p className="text-3xl font-bold tracking-tight text-navy">{next.title}</p>

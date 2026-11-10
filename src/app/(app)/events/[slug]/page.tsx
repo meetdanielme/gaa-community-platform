@@ -1,11 +1,10 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { codeLabel } from "@/club.config";
 import { PageBody, PageHeader } from "@/components/page-header";
 import { ShareButton } from "@/components/share-button";
 import { DownloadIcon } from "@/components/icons";
-import { Card, DetailRows, Notice, Tag, buttonClass } from "@/components/ui";
+import { Card, CodeTag, DetailRows, Notice, buttonClass } from "@/components/ui";
 import { formatLongDate, formatTime } from "@/lib/format";
 import { requireUser } from "@/lib/session";
 import { getEventDetail } from "@/server/events";
@@ -41,7 +40,7 @@ export default async function EventPage({ params }: PageProps<"/events/[slug]">)
             </div>
           )}
           <div>
-            <Tag>{codeLabel(e.category)}</Tag>
+            <CodeTag code={e.category} />
           </div>
           <h2 className="text-3xl font-bold tracking-tight">{e.title}</h2>
           {isPast && e.recap && (

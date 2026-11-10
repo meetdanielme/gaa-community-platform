@@ -15,6 +15,13 @@
       "when": 1794305841750,
       "tag": "0001_admin_and_governance",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794310551441,
+      "tag": "0002_remove_helps_with",
+      "breakpoints": true
     }
   ]
 }

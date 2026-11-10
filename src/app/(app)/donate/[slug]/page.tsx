@@ -16,7 +16,7 @@ export const metadata: Metadata = { title: "Our next chapter" };
 
 const statusLabel: Record<string, string> = {
   proposed: "Proposed goal",
-  funded: "Funded together",
+  funded: "Funded",
   withdrawn: "Withdrawn",
 };
 
@@ -71,14 +71,14 @@ export default async function GoalPage({ params }: PageProps<"/donate/[slug]">) 
             </p>
           ))}
           <div>
-            <h3 className="text-xl font-bold">Four codes. One community.</h3>
+            <h3 className="text-xl font-bold">Who benefits</h3>
             <p className="mt-2 max-w-md">
               {codeNames.slice(0, -1).join(", ")} and {codeNames.at(-1)} all benefit from this goal.
             </p>
           </div>
           {goal.breakdown.length > 0 && (
             <Card className="flex flex-col gap-4">
-              <h3 className="text-xl font-bold">Where your gift goes</h3>
+              <h3 className="text-xl font-bold">Cost breakdown</h3>
               <DetailRows
                 rows={[
                   ...goal.breakdown.map((b) => ({ label: b.label, value: formatMoney(b.amountCents) })),

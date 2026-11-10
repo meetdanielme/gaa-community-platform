@@ -1,7 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { codeLabel } from "@/club.config";
-import { LinkButton } from "@/components/ui";
+import { CodeTag, LinkButton } from "@/components/ui";
 import { formatLongDate } from "@/lib/format";
 import { listPostsAdmin } from "@/server/admin/content";
 import { AdminPage, Table, Td } from "../ui";
@@ -13,7 +12,6 @@ export default async function AdminPostsPage() {
   return (
     <AdminPage
       title="Posts"
-      description="Club updates shown in everyone's feed, newest first."
       actions={
         <LinkButton href="/admin/posts/new" variant="primary" size="sm">
           New post
@@ -30,7 +28,9 @@ export default async function AdminPostsPage() {
               <p className="text-xs text-muted">{p.kind}</p>
             </Td>
             <Td>{p.authorName}</Td>
-            <Td>{codeLabel(p.category)}</Td>
+            <Td>
+              <CodeTag code={p.category} />
+            </Td>
             <Td className="whitespace-nowrap">{formatLongDate(p.publishedAt)}</Td>
           </tr>
         ))}

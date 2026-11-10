@@ -4,6 +4,8 @@ import { member, membershipFee, user as userTable } from "@/db/schema";
 import { clubConfig } from "@/club.config";
 import { decideFeePayment } from "@/lib/rules/payments";
 import { canPay } from "@/lib/rules/roles";
+import { syncMembershipFee } from "@/lib/rules/membership";
+import type { Tx } from "./fundraising";
 import type { CurrentUser } from "@/lib/session";
 import { payments, receiptNumber } from "./payments";
 
@@ -54,38 +56,51 @@ export type MemberInput = {
   team: string | null;
 };
 
+/** Keeps this season's fee in step with whether the member plays a code. */
+async function syncFee(tx: Tx, m: { id: string; code: string | null }) {
+  const [fee] = await tx
+    .select()
+    .from(membershipFee)
+    .where(and(eq(membershipFee.memberId, m.id), eq(membershipFee.season, clubConfig.season)));
+  const action = syncMembershipFee({ code: m.code, feeStatus: fee?.status ?? null });
+  if (action === "create") {
+    await tx
+      .insert(membershipFee)
+      .values({ memberId: m.id, season: clubConfig.season, amountCents: clubConfig.membershipFeeCents });
+  } else if (action === "remove" && fee) {
+    await tx.delete(membershipFee).where(eq(membershipFee.id, fee.id));
+  }
+}
+
 /**
  * BR01: creates or updates a family member managed by `managerUserId`. Only
- * that account (or a club admin acting for it) may call this. New members
- * get a membership record for the current season.
+ * that account (or a club admin acting for it) may call this. Members who
+ * play a code get a membership fee for the current season.
  */
 export async function saveMember(managerUserId: string, input: MemberInput) {
   // The "self" profile is tied to the account: its name comes from the
   // contact details and its relationship can never change.
   const relationship = input.relationship === "self" ? "other" : input.relationship;
-  if (input.id) {
-    const updated = await db
-      .update(member)
-      .set({
-        fullName: sql`case when ${member.relationship} = 'self' then ${member.fullName} else ${input.fullName} end`,
-        relationship: sql`case when ${member.relationship} = 'self' then 'self' else ${relationship} end`,
-        code: input.code,
-        team: input.team,
-      })
-      .where(and(eq(member.id, input.id), eq(member.managedByUserId, managerUserId)))
-      .returning();
-    return updated[0] ?? null;
-  }
   return db.transaction(async (tx) => {
+    if (input.id) {
+      const [updated] = await tx
+        .update(member)
+        .set({
+          fullName: sql`case when ${member.relationship} = 'self' then ${member.fullName} else ${input.fullName} end`,
+          relationship: sql`case when ${member.relationship} = 'self' then 'self' else ${relationship} end`,
+          code: input.code,
+          team: input.team,
+        })
+        .where(and(eq(member.id, input.id), eq(member.managedByUserId, managerUserId)))
+        .returning();
+      if (updated) await syncFee(tx, updated);
+      return updated ?? null;
+    }
     const [created] = await tx
       .insert(member)
       .values({ managedByUserId: managerUserId, fullName: input.fullName, relationship, code: input.code, team: input.team })
       .returning();
-    await tx.insert(membershipFee).values({
-      memberId: created.id,
-      season: clubConfig.season,
-      amountCents: clubConfig.membershipFeeCents,
-    });
+    await syncFee(tx, created);
     return created;
   });
 }
@@ -99,7 +114,7 @@ export async function removeMember(managerUserId: string, memberId: string) {
   return removed[0] ?? null;
 }
 
-/** "My giving": the signed-in person's donation history. */
+/** "Your donations": the signed-in person's donation history. */
 export async function getMyDonations(userId: string) {
   return db.query.donation.findMany({
     where: (d, { eq: e }) => e(d.userId, userId),

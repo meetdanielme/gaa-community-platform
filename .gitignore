@@ -46,3 +46,6 @@ next-env.d.ts
 
 # coursework source material (large decks/videos; not part of the app)
 /context
+
+# iCloud sync conflict copies (e.g. "file 2.ts")
+* 2.*

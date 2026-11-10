@@ -25,7 +25,6 @@ export const demoUser = {
   phone: "+353 123 45678",
   eircode: "T12 KV06",
   roles: "family_supporter",
-  helpsWith: "Carpooling · Event check-in · First aid",
   family: [
     { fullName: "Sandu Alam", relationship: "child", code: "football", team: "U18", fee: "unpaid" },
     { fullName: "Emmanuella Alam", relationship: "child", code: "camogie", team: "U18", fee: "paid" },
@@ -39,7 +38,6 @@ export const demoAdmin = {
   phone: "+353 21 400 1234",
   eircode: "T12 AB34",
   roles: "family_supporter",
-  helpsWith: "Club secretary",
 };
 
 export const posts = [

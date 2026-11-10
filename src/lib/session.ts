@@ -15,7 +15,6 @@ export type CurrentUser = {
   email: string;
   phone: string | null;
   eircode: string | null;
-  helpsWith: string | null;
   roles: Role[];
   isAdmin: boolean;
 };
@@ -34,7 +33,6 @@ export async function requireUser(): Promise<CurrentUser> {
     email: u.email,
     phone: u.phone ?? null,
     eircode: u.eircode ?? null,
-    helpsWith: u.helpsWith ?? null,
     roles: parseRoles(u.roles),
     isAdmin: u.isAdmin === true,
   };

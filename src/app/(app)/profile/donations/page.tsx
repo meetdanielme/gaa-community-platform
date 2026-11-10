@@ -6,7 +6,7 @@ import { formatLongDate, formatMoney } from "@/lib/format";
 import { requireUser } from "@/lib/session";
 import { getMyDonations } from "@/server/profile";
 
-export const metadata: Metadata = { title: "Your giving" };
+export const metadata: Metadata = { title: "Your donations" };
 
 const statusLabel: Record<string, string> = {
   succeeded: "Confirmed",
@@ -14,19 +14,18 @@ const statusLabel: Record<string, string> = {
   pending: "Awaiting confirmation",
 };
 
-export default async function GivingPage() {
+export default async function DonationsPage() {
   const user = await requireUser();
   const donations = await getMyDonations(user.id);
   const total = donations.filter((d) => d.status === "succeeded").reduce((n, d) => n + d.amountCents, 0);
 
   return (
     <>
-      <PageHeader title="Your giving" backHref="/profile" />
+      <PageHeader title="Your donations" backHref="/profile" />
       <PageBody className="flex max-w-3xl flex-col gap-6">
         <Card>
           <p className="text-sm text-muted">Total given</p>
           <p className="text-4xl font-bold text-navy">{formatMoney(total, { cents: total % 100 !== 0 })}</p>
-          <p className="mt-1 text-sm text-muted">Thank you for supporting the whole club.</p>
         </Card>
 
         {donations.length === 0 ? (

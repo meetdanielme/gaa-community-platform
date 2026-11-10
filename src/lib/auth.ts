@@ -56,7 +56,6 @@ export const auth = betterAuth({
         required: false,
         defaultValue: "family_supporter",
       },
-      helpsWith: { type: "string", required: false, input: false },
       // input: false — users can never grant themselves admin rights.
       isAdmin: { type: "boolean", required: false, defaultValue: false, input: false },
     },
@@ -70,21 +69,13 @@ export const auth = betterAuth({
           }
           return { data };
         },
-        // Every account gets its own member profile (UC1) and a fee record
-        // for the current season (UC5).
+        // Every account gets its own member profile (UC1). A membership fee
+        // is added once they register to play a code (UC5).
         after: async (created) => {
-          const [self] = await db
-            .insert(schema.member)
-            .values({
-              managedByUserId: created.id,
-              fullName: created.name,
-              relationship: "self",
-            })
-            .returning();
-          await db.insert(schema.membershipFee).values({
-            memberId: self.id,
-            season: clubConfig.season,
-            amountCents: clubConfig.membershipFeeCents,
+          await db.insert(schema.member).values({
+            managedByUserId: created.id,
+            fullName: created.name,
+            relationship: "self",
           });
         },
       },

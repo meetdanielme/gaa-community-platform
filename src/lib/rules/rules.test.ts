@@ -8,6 +8,7 @@ import { decideProgression } from "./progression";
 import { decideFeePayment, validateDonation } from "./payments";
 import { decideEventResponse } from "./events";
 import { canPay, canVote, parseRoles } from "./roles";
+import { requiresMembership, syncMembershipFee } from "./membership";
 
 describe("roles", () => {
   it("parses and filters unknown roles", () => {
@@ -159,5 +160,19 @@ describe("BR03 event response", () => {
     expect(
       decideEventResponse({ ...base, capacity: null, rsvpDeadline: new Date("2026-10-19") }),
     ).toMatchObject({ reason: "deadline_passed" });
+  });
+});
+
+describe("membership fees", () => {
+  it("are only owed for people playing a code", () => {
+    expect(requiresMembership({ code: null })).toBe(false);
+    expect(requiresMembership({ code: "hurling" })).toBe(true);
+  });
+  it("are created when someone starts playing and removed if they stop before paying", () => {
+    expect(syncMembershipFee({ code: "camogie", feeStatus: null })).toBe("create");
+    expect(syncMembershipFee({ code: "camogie", feeStatus: "unpaid" })).toBe("keep");
+    expect(syncMembershipFee({ code: null, feeStatus: "unpaid" })).toBe("remove");
+    expect(syncMembershipFee({ code: null, feeStatus: "paid" })).toBe("keep");
+    expect(syncMembershipFee({ code: null, feeStatus: null })).toBe("keep");
   });
 });
