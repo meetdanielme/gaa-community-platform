@@ -16,7 +16,11 @@ const nav = [
   { href: "/profile", label: "Profile", Icon: PersonIcon },
 ] as const;
 
-/** Brand rule: the artwork only sits on white, so dark mode gives it a white plate. */
+/**
+ * Brand rule: the artwork only sits on white, so dark mode gives it a white
+ * plate. Each plate's padding is cancelled by a matching negative margin, so
+ * the plate grows outwards and the layout doesn't shift when the theme changes.
+ */
 const plate = "dark:box-content dark:bg-white";
 
 /** The club logo lockup (artwork, per the brand guidelines). */
@@ -38,7 +42,7 @@ export function Logo({
       width={width}
       height={Math.round((width * h) / w)}
       priority={priority}
-      className={onWhite ? "" : `${plate} dark:rounded-xl dark:px-3 dark:py-2`}
+      className={onWhite ? "" : `${plate} dark:-mx-3 dark:-my-2 dark:rounded-xl dark:px-3 dark:py-2`}
     />
   );
 }
@@ -51,7 +55,7 @@ export function Badge({ size = 32, className = "" }: { size?: number; className?
       alt=""
       width={size}
       height={size}
-      className={`${plate} dark:rounded-full dark:p-0.5 ${className}`}
+      className={`${plate} dark:-m-0.5 dark:rounded-full dark:p-0.5 ${className}`}
     />
   );
 }
