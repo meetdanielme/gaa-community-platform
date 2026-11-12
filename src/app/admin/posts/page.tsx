@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { PinIcon } from "@/components/icons";
 import { CodeTag, KindLabel, LinkButton } from "@/components/ui";
 import { formatLongDate } from "@/lib/format";
 import { listPostsAdmin } from "@/server/admin/content";
@@ -25,6 +26,12 @@ export default async function AdminPostsPage() {
               <Link href={`/admin/posts/${p.id}`} className="font-semibold text-navy hover:underline">
                 {p.title}
               </Link>
+              {p.pinned && (
+                <span className="mt-1 flex items-center gap-1 text-xs font-bold tracking-wide text-muted uppercase">
+                  <PinIcon className="size-3.5" />
+                  Pinned
+                </span>
+              )}
             </Td>
             <Td>
               <KindLabel kind={p.kind} />

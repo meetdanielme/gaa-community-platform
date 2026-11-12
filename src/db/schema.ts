@@ -189,6 +189,8 @@ export const post = pgTable("post", {
   imageUrl: text("image_url"),
   ctaLabel: text("cta_label"),
   ctaHref: text("cta_href"),
+  /** Important notices (e.g. weather cancellations) stay at the top of the feed. */
+  pinned: boolean("pinned").notNull().default(false),
   publishedAt: timestamp("published_at").notNull().defaultNow(),
 });
 

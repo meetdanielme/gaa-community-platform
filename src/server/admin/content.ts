@@ -19,10 +19,11 @@ export type PostInput = {
   imageUrl: string | null;
   ctaLabel: string | null;
   ctaHref: string | null;
+  pinned: boolean;
 };
 
 export async function listPostsAdmin() {
-  return db.select().from(post).orderBy(desc(post.publishedAt));
+  return db.select().from(post).orderBy(desc(post.pinned), desc(post.publishedAt));
 }
 
 export async function getPostAdmin(id: string) {

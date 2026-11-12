@@ -374,6 +374,30 @@ describe("admin (club officers)", () => {
     expect(await svc.events.respondToEvent(evan, { eventId: id, memberId: self.id, choice: "going" })).toMatchObject({ ok: true });
   });
 
+  it("keeps pinned posts at the top of the feed until unpinned", async () => {
+    const feed = await import("./feed");
+    expect((await feed.listPosts())[0].title).toBe("Wet-weather training update");
+
+    const input = {
+      kind: "Club update",
+      category: null,
+      title: "Pitch closed this weekend",
+      body: "Storm warning: all games are off until Monday.",
+      imageUrl: null,
+      ctaLabel: null,
+      ctaHref: null,
+      pinned: true,
+    };
+    const id = await adminSvc.content.savePost(admin, input);
+    const pinned = (await feed.listPosts()).filter((p) => p.pinned).map((p) => p.title);
+    expect(pinned).toEqual(["Pitch closed this weekend", "Wet-weather training update"]);
+
+    await adminSvc.content.savePost(admin, { ...input, id, pinned: false });
+    const posts = await feed.listPosts("hurling");
+    expect(posts[0].title).toBe("Wet-weather training update");
+    expect(posts.find((p) => p.id === id)?.pinned).toBe(false);
+  });
+
   it("logs every admin change for transparency", async () => {
     const { activity } = await adminSvc.dashboard.getDashboard();
     const actions = activity.map((a) => a.summary).join("\n");

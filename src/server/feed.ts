@@ -3,7 +3,7 @@ import { db } from "@/db";
 import { post } from "@/db/schema";
 
 /**
- * Feed posts, newest first. Filtering by a code also includes club-wide
+ * Feed posts, pinned first, then newest first. Filtering by a code also includes club-wide
  * posts (no code), since those apply to everyone. `kind` filters by post type.
  */
 export async function listPosts(category?: string, kind?: string) {
@@ -16,7 +16,7 @@ export async function listPosts(category?: string, kind?: string) {
         kind ? eq(post.kind, kind) : undefined,
       ),
     )
-    .orderBy(desc(post.publishedAt));
+    .orderBy(desc(post.pinned), desc(post.publishedAt));
 }
 
 export async function getPost(id: string) {

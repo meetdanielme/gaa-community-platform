@@ -23,12 +23,13 @@ const postSchema = z.object({
   imageUrl,
   ctaLabel: optional(limits.post.ctaLabel[1]),
   ctaHref: optional(limits.post.ctaHref[1]).refine((v) => v === null || /^\/(?!\/)/.test(v) || /^https:\/\//.test(v), "Use a /path or https:// link"),
+  pinned: z.string().transform((v) => v === "on"),
 });
 
 export async function savePostAction(_: FormState, formData: FormData): Promise<FormState> {
   const admin = await requireAdmin();
   const parsed = postSchema.safeParse(
-    formFields(formData, ["id", "kind", "category", "title", "body", "imageUrl", "ctaLabel", "ctaHref"]),
+    formFields(formData, ["id", "kind", "category", "title", "body", "imageUrl", "ctaLabel", "ctaHref", "pinned"]),
   );
   if (!parsed.success) return fieldErrors(parsed.error);
   const { ctaLabel, ctaHref } = parsed.data;

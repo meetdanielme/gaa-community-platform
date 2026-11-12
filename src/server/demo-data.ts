@@ -111,6 +111,7 @@ export const posts = [
     imageUrl: null,
     ctaLabel: null,
     ctaHref: null,
+    pinned: true,
     publishedAt: hoursAgo(3),
   },
   {

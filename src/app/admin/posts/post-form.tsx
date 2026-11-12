@@ -18,6 +18,7 @@ type PostValues = {
   imageUrl: string | null;
   ctaLabel: string | null;
   ctaHref: string | null;
+  pinned: boolean;
 };
 
 export function PostForm({ post, author }: { post?: PostValues; author: string }) {
@@ -70,6 +71,13 @@ export function PostForm({ post, author }: { post?: PostValues; author: string }
             <option value="social">Social</option>
           </Select>
         </Field>
+        <label className="flex items-start gap-3 rounded-xl bg-paper p-3">
+          <input type="checkbox" name="pinned" defaultChecked={post?.pinned} className="mt-1 size-4 accent-navy" />
+          <span>
+            <span className="block font-semibold">Pin to the top of the feed</span>
+            <span className="text-sm text-muted">For important notices, like weather cancellations. Unpin it once it no longer applies.</span>
+          </span>
+        </label>
         <ImageField defaultValue={post?.imageUrl} error={err.imageUrl} />
         {state && !state.ok && <Notice tone="error">Please check the highlighted fields.</Notice>}
         <Button type="submit" variant="primary" disabled={pending}>

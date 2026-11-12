@@ -50,6 +50,13 @@
       "when": 1794325655644,
       "tag": "0006_member_handover",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1794412706508,
+      "tag": "0007_pinned_posts",
+      "breakpoints": true
     }
   ]
 }
