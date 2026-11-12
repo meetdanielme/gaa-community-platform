@@ -46,10 +46,24 @@ export function lengthProps([min, max]: Limit) {
   return { minLength: min || undefined, maxLength: max, required: min > 0 };
 }
 
+/**
+ * The input classes plus a field's own ones. A width or horizontal padding
+ * passed in replaces the default (e.g. a narrow time box in a row), since
+ * Tailwind would otherwise pick between the two by stylesheet order.
+ */
+function fieldClass(extra = "") {
+  const overridden = ["w", "px"].filter((u) => new RegExp(`(^|\\s)${u}-`).test(extra));
+  const base = inputClass
+    .split(" ")
+    .filter((c) => !overridden.some((u) => c.startsWith(`${u}-`)))
+    .join(" ");
+  return `${base} ${extra}`;
+}
+
 export function Input({ limit, ...props }: ComponentProps<"input"> & { limit?: Limit }) {
-  return <input {...(limit ? lengthProps(limit) : {})} {...props} className={`${inputClass} ${props.className ?? ""}`} />;
+  return <input {...(limit ? lengthProps(limit) : {})} {...props} className={fieldClass(props.className)} />;
 }
 
 export function Select(props: ComponentProps<"select">) {
-  return <select {...props} className={`${inputClass} ${props.className ?? ""}`} />;
+  return <select {...props} className={fieldClass(props.className)} />;
 }

@@ -121,6 +121,11 @@ export const MegaphoneIcon = (p: IconProps) => (
     <path d="M7.5 15l1.2 4.5M18 9.5a3.5 3.5 0 0 1 0 5" />
   </Icon>
 );
+export const MoreIcon = (p: IconProps) => (
+  <Icon {...p} strokeWidth={2.5}>
+    <path d="M5.5 12h.01M12 12h.01M18.5 12h.01" />
+  </Icon>
+);
 export const PinIcon = (p: IconProps) => (
   <Icon {...p}>
     <path d="M9 3.5h6M10 3.5v5.5L6.5 13h11L14 9V3.5M12 13v7.5" />

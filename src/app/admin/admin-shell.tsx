@@ -2,26 +2,33 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
-import { Logo } from "@/components/app-shell";
+import { useState, type ReactNode } from "react";
+import { Badge, Logo } from "@/components/app-shell";
+import { Sheet } from "@/components/sheet";
 import {
   BackIcon,
   CalendarIcon,
   DashboardIcon,
   FeedIcon,
   HeartIcon,
+  MoreIcon,
   PeopleIcon,
   ReceiptIcon,
 } from "@/components/icons";
 
-const nav = [
-  { href: "/admin", label: "Dashboard", Icon: DashboardIcon },
+const nav: { href: string; label: string; short?: string; Icon: (p: { className?: string }) => ReactNode }[] = [
+  { href: "/admin", label: "Dashboard", short: "Home", Icon: DashboardIcon },
   { href: "/admin/posts", label: "Posts", Icon: FeedIcon },
   { href: "/admin/events", label: "Events", Icon: CalendarIcon },
   { href: "/admin/goals", label: "Fundraising", Icon: HeartIcon },
   { href: "/admin/donations", label: "Donations", Icon: ReceiptIcon },
   { href: "/admin/members", label: "Members", Icon: PeopleIcon },
 ];
+
+/** Phones: the busiest sections get a tab; the rest sit under "More". */
+const tabs = ["/admin", "/admin/posts", "/admin/events", "/admin/members"];
+const tabNav = nav.filter((n) => tabs.includes(n.href));
+const moreNav = nav.filter((n) => !tabs.includes(n.href));
 
 export function AdminShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -51,24 +58,64 @@ export function AdminShell({ children }: { children: ReactNode }) {
         </Link>
       </aside>
 
-      {/* Mobile: horizontal admin nav */}
-      <nav aria-label="Admin" className="sticky top-0 z-20 flex gap-1 overflow-x-auto bg-brand px-3 py-2 lg:hidden">
-        <Link href="/feed" className="shrink-0 rounded-full px-3 py-2 text-sm text-white/80">
-          ← App
+      {/* Phones: a slim brand bar on top and a tab bar at the bottom */}
+      <header className="flex items-center gap-3 bg-brand px-4 py-2.5 text-white lg:hidden">
+        <span className="grid size-8 shrink-0 place-items-center rounded-full bg-white">
+          <Badge size={22} />
+        </span>
+        <span className="flex-1 text-sm font-semibold tracking-widest uppercase">Club admin</span>
+        <Link href="/feed" className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm text-white/85 hover:bg-white/10">
+          <BackIcon className="size-4" /> App
         </Link>
-        {nav.map((n) => (
-          <Link
-            key={n.href}
-            href={n.href}
-            aria-current={active(n.href) ? "page" : undefined}
-            className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-sm font-semibold text-white ${active(n.href) ? "bg-white/15" : ""}`}
-          >
-            <n.Icon className="size-4" />
-            {n.label}
+      </header>
+      <AdminTabBar active={active} />
+      <div className="pb-28 lg:pb-0">{children}</div>
+    </div>
+  );
+}
+
+function AdminTabBar({ active }: { active: (href: string) => boolean }) {
+  const [moreOpen, setMoreOpen] = useState(false);
+  const inMore = moreNav.some((n) => active(n.href));
+  const tabClass = (on: boolean) =>
+    `flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-full px-1 py-1.5 text-xs font-semibold ${
+      on ? "bg-nav-active text-navy" : "text-muted"
+    }`;
+  return (
+    <>
+      <nav
+        aria-label="Admin"
+        className="fixed inset-x-4 bottom-4 z-10 flex h-17 items-center gap-1 rounded-full border border-surface/60 bg-surface/85 px-2 shadow-lg backdrop-blur-xl lg:hidden"
+      >
+        {tabNav.map((n) => (
+          <Link key={n.href} href={n.href} aria-current={active(n.href) ? "page" : undefined} className={tabClass(active(n.href))}>
+            <n.Icon className="size-6 shrink-0" />
+            <span className="max-w-full truncate">{n.short ?? n.label}</span>
           </Link>
         ))}
+        <button type="button" onClick={() => setMoreOpen(true)} className={tabClass(inMore)} aria-haspopup="dialog">
+          <MoreIcon className="size-6 shrink-0" />
+          More
+        </button>
       </nav>
-      {children}
-    </div>
+      <Sheet open={moreOpen} onClose={() => setMoreOpen(false)} title="More">
+        <nav aria-label="More admin" className="flex flex-col gap-1">
+          {moreNav.map((n) => (
+            <Link
+              key={n.href}
+              href={n.href}
+              onClick={() => setMoreOpen(false)}
+              aria-current={active(n.href) ? "page" : undefined}
+              className={`flex h-13 items-center gap-3 rounded-2xl px-4 font-semibold text-navy hover:bg-paper ${
+                active(n.href) ? "bg-nav-active" : ""
+              }`}
+            >
+              <n.Icon className="size-5 shrink-0" />
+              {n.label}
+            </Link>
+          ))}
+        </nav>
+      </Sheet>
+    </>
   );
 }
