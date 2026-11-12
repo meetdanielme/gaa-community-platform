@@ -4,11 +4,11 @@ import { use, useState } from "react";
 import { SheetContext } from "@/components/sheet";
 import type { FormState } from "@/lib/form-state";
 import { useFormAction } from "@/lib/use-form-action";
-import { clubConfig, codeLabel, codes } from "@/club.config";
+import { clubConfig, codeGroup, codeLabel, codes } from "@/club.config";
 import { Field, Input, Select } from "@/components/form";
 import { Button, Notice } from "@/components/ui";
 import { relationshipLabels } from "@/lib/members";
-import { assignTeam } from "@/lib/rules/membership";
+import { assignTeam, canAddCode } from "@/lib/rules/membership";
 import { limits } from "@/lib/limits";
 
 type MemberValues = {
@@ -107,11 +107,12 @@ export function MemberForm({
         <div className="grid gap-2 sm:grid-cols-2">
           {codes.map((c) => {
             const checked = playing.includes(c.id);
+            const disabled = !canAddCode(playing, c.id, codeGroup, max);
             return (
               <label
                 key={c.id}
-                className={`flex cursor-pointer items-center gap-3 rounded-xl bg-paper p-3 ${
-                  !checked && playing.length >= max ? "cursor-not-allowed opacity-50" : ""
+                className={`flex items-center gap-3 rounded-xl bg-paper p-3 ${
+                  disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"
                 }`}
               >
                 <input
@@ -119,7 +120,7 @@ export function MemberForm({
                   name="codes"
                   value={c.id}
                   checked={checked}
-                  disabled={!checked && playing.length >= max}
+                  disabled={disabled}
                   onChange={(e) => toggle(c.id, e.target.checked)}
                   className="size-4 accent-navy"
                 />

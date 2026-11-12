@@ -10,7 +10,15 @@ import { decideProgression } from "./progression";
 import { decideFeePayment, validateDonation } from "./payments";
 import { decideEventResponse } from "./events";
 import { canPay, canVote, parseRoles } from "./roles";
-import { assignTeam, cancellationNeedsAlert, requiresMembership, syncMembershipFee } from "./membership";
+import { codeGroup } from "@/club.config";
+import {
+  assignTeam,
+  canAddCode,
+  cancellationNeedsAlert,
+  codesCombine,
+  requiresMembership,
+  syncMembershipFee,
+} from "./membership";
 
 describe("roles", () => {
   it("parses and filters unknown roles", () => {
@@ -182,6 +190,18 @@ describe("membership fees", () => {
   it("are only owed for people playing a code", () => {
     expect(requiresMembership({ codes: [] })).toBe(false);
     expect(requiresMembership({ codes: ["hurling", "football"] })).toBe(true);
+  });
+  it("only combine codes from the same group, up to the limit", () => {
+    expect(canAddCode([], "camogie", codeGroup, 2)).toBe(true);
+    expect(canAddCode(["hurling"], "football", codeGroup, 2)).toBe(true);
+    expect(canAddCode(["hurling"], "camogie", codeGroup, 2)).toBe(false);
+    expect(canAddCode(["camogie"], "ladies_football", codeGroup, 2)).toBe(true);
+    expect(canAddCode(["camogie"], "football", codeGroup, 2)).toBe(false);
+    expect(canAddCode(["hurling", "football"], "hurling", codeGroup, 2)).toBe(true); // already chosen
+    expect(canAddCode(["hurling"], "football", codeGroup, 1)).toBe(false);
+    expect(codesCombine([], codeGroup, 2)).toBe(true);
+    expect(codesCombine(["camogie", "ladies_football"], codeGroup, 2)).toBe(true);
+    expect(codesCombine(["hurling", "ladies_football"], codeGroup, 2)).toBe(false);
   });
   it("are created when someone starts playing a code and removed if they stop before paying", () => {
     expect(syncMembershipFee({ plays: true, feeStatus: null })).toBe("create");

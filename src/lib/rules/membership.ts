@@ -6,6 +6,21 @@ export function requiresMembership(member: { codes: string[] }) {
   return member.codes.length > 0;
 }
 
+/**
+ * Whether one more code can be added to those already chosen: up to `max`
+ * codes, all from the same group (e.g. hurling and football, not hurling
+ * and camogie).
+ */
+export function canAddCode(chosen: string[], code: string, groupOf: (code: string) => string | undefined, max: number) {
+  if (chosen.includes(code)) return true;
+  return chosen.length < max && chosen.every((c) => groupOf(c) === groupOf(code));
+}
+
+/** Whether a set of codes can be played together (see `canAddCode`). */
+export function codesCombine(codes: string[], groupOf: (code: string) => string | undefined, max: number) {
+  return codes.length <= max && codes.every((c) => groupOf(c) === groupOf(codes[0]));
+}
+
 export type FeeSync = "create" | "remove" | "keep";
 
 /** What to do with this season's fee for one code after a member's codes change. */

@@ -7,13 +7,20 @@
  * name, colours or codes.
  */
 
-/** Each code has its own tag colour (text on tint) so they're easy to tell apart. */
+/**
+ * Each code has its own tag colour (text on tint) so they're easy to tell
+ * apart. A person can only combine codes from the same group, e.g. hurling
+ * and football, or camogie and ladies' football.
+ */
 export const codes = [
-  { id: "hurling", label: "Hurling", colour: "#1e4fa3", tint: "#e3ecfb" },
-  { id: "football", label: "Gaelic Football", colour: "#17663a", tint: "#def5e6" },
-  { id: "camogie", label: "Camogie", colour: "#7a2a9c", tint: "#f2e5f9" },
-  { id: "ladies_football", label: "Ladies' Gaelic Football", colour: "#a3214a", tint: "#fbe3ea" },
+  { id: "hurling", label: "Hurling", group: "mens", colour: "#1e4fa3", tint: "#e3ecfb" },
+  { id: "football", label: "Gaelic Football", group: "mens", colour: "#17663a", tint: "#def5e6" },
+  { id: "camogie", label: "Camogie", group: "womens", colour: "#7a2a9c", tint: "#f2e5f9" },
+  { id: "ladies_football", label: "Ladies' Gaelic Football", group: "womens", colour: "#a3214a", tint: "#fbe3ea" },
 ] as const;
+
+/** The group a code belongs to (see `codes`). */
+export const codeGroup = (id: string) => codes.find((c) => c.id === id)?.group;
 
 export type CodeId = (typeof codes)[number]["id"];
 

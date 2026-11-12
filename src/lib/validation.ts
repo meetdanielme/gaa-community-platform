@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { clubConfig, codes } from "@/club.config";
-import { assignTeam } from "@/lib/rules/membership";
+import { clubConfig, codeGroup, codes } from "@/club.config";
+import { assignTeam, codesCombine } from "@/lib/rules/membership";
 import { limits } from "@/lib/limits";
 
 /** Shared form schemas, used by member and admin actions. */
@@ -30,7 +30,8 @@ export const memberSchema = z
     codes: z
       .array(z.enum(codeIds))
       .transform((v) => [...new Set(v)])
-      .refine((v) => v.length <= clubConfig.maxCodesPerMember, `Choose up to ${clubConfig.maxCodesPerMember} codes`),
+      .refine((v) => v.length <= clubConfig.maxCodesPerMember, `Choose up to ${clubConfig.maxCodesPerMember} codes`)
+      .refine((v) => codesCombine(v, codeGroup, clubConfig.maxCodesPerMember), "These codes can't be played together"),
     dateOfBirth: z
       .string()
       .trim()
