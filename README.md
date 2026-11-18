@@ -203,10 +203,10 @@ Designed and built by IS2204 Group 16, University College Cork (2026):
 
 | Team member | LinkedIn | GitHub |
 | --- | --- | --- |
-| Evan Alam | [Evan Alam](https://ie.linkedin.com/in/evan-alam-565b33384) | — |
+| Evan Alam | [Evan Alam](https://ie.linkedin.com/in/evan-alam-565b33384) | [@evaexia](https://github.com/evaexia) |
 | Idayat Majolagbe | [Idayat Majolagbe](https://www.linkedin.com/in/idayat-majolagbe-9935a7354/) | — |
 | Daniel Marcinkowski | [Daniel Marcinkowski](https://ie.linkedin.com/in/meetdanielme) | [@meetdanielme](https://github.com/meetdanielme) |
-| Chloe Mitellus | [Chloé Mitellus](https://ie.linkedin.com/in/chlo%C3%A9-mitellus-504072386) | — |
+| Chloe Mitellus | [Chloé Mitellus](https://ie.linkedin.com/in/chlo%C3%A9-mitellus-504072386) | [@iv0-0vi](https://github.com/iv0-0vi) |
 | Emma Ntumobe | [Emmanuella Ntumobe](https://ie.linkedin.com/in/emmanuella-ntumobe-52b797384) | — |
 | Sandu Stati Suman | [Sandu Stati Suman](https://ie.linkedin.com/in/sandu-stati-suman-595b30384) | [@courius](https://github.com/courius) |
 
